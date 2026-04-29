@@ -43,7 +43,7 @@ const BUILT_IN_NODE_DEFAULTS: NodeDefaults = {
 
 const BUILT_IN_CHANNEL_DEFAULTS: ChannelDefaults = {
   speed: 500,
-  size: 0.3,
+  size: 1,
   color: '#cccccc' as HexColor,
   messageModel: 'sphere',
   arcHeight: 1.5,

@@ -57,7 +57,7 @@ export class MessageAnimator {
     let label: THREE.Sprite | undefined;
     if (msg.label) {
       label = createLabelSprite(msg.label);
-      label.position.copy(mesh.position).add(new THREE.Vector3(0, 0.5, 0));
+      label.position.set(start.x, start.y + 0.5, start.z);
       this.root.add(label);
     }
 
@@ -74,7 +74,7 @@ export class MessageAnimator {
     });
   }
 
-  tick(_deltaSeconds: number, nowMs: number, config: NormalizedConfig): void {
+  tick(_deltaSeconds: number, nowMs: number, _config: NormalizedConfig): void {
     for (const am of [...this.active.values()]) {
       const elapsed = nowMs - am.startMs;
       const t = Math.max(0, Math.min(1, elapsed / am.durationMs));
@@ -85,9 +85,9 @@ export class MessageAnimator {
         continue;
       }
       const p = curve.getPoint(eased);
-      const w = wanderOffset(t, config.channels[am.channel]?.size ?? 0.3);
+      const w = wanderOffset(t, 0.3);
       am.mesh.position.set(p.x + w[0], p.y + w[1], p.z + w[2]);
-      if (am.label) am.label.position.copy(am.mesh.position).add(new THREE.Vector3(0, 0.5, 0));
+      if (am.label) am.label.position.set(p.x, p.y + 0.5, p.z);
       if (t >= 1) this.retire(am);
     }
   }
