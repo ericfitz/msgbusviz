@@ -47,9 +47,13 @@ export class Viewer {
   toggleLabels(): void {
     this.labelsVisible = !this.labelsVisible;
     this.nodes.setLabelsVisible(this.labelsVisible);
+    this.animator.setLabelsVisible(this.labelsVisible);
   }
 
-  fitToGraph(): void { this.orbit.fitToBox(this.nodes.computeBoundingBox()); }
+  fitToGraph(): void {
+    this.nodes.updateWorldMatrices();
+    this.orbit.fitToBox(this.nodes.computeBoundingBox());
+  }
   resetView(): void { this.orbit.reset(); }
 
   dispose(): void {
@@ -94,9 +98,11 @@ export class Viewer {
       this.sceneRoot.camera.position.set(...this.current.camera.position);
       this.sceneRoot.camera.lookAt(...this.current.camera.lookAt);
       this.orbit.controls.target.set(...this.current.camera.lookAt);
+      this.orbit.controls.update();
     } else {
       this.fitToGraph();
     }
+    this.orbit.captureInitial();
 
     this.loop = startAnimationLoop();
     this.loop.add((delta, now) => {

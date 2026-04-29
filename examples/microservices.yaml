@@ -1,5 +1,8 @@
 version: 1
 layout: { mode: grid, spacing: 4 }
+defaults:
+  channel:
+    speed: 2500
 nodes:
   Browser:    { model: client }
   CDN:        { model: cloud }

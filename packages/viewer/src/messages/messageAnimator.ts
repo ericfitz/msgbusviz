@@ -23,11 +23,19 @@ export class MessageAnimator {
   private root = new THREE.Group();
   private active = new Map<string, ActiveMessage>();
   private pool = new ObjectPool();
+  private labelsVisible = true;
 
   constructor(private edges: EdgeManager, private baseUrl: string) {}
 
   attach(scene: THREE.Scene): void { scene.add(this.root); }
   detach(scene: THREE.Scene): void { scene.remove(this.root); }
+
+  setLabelsVisible(v: boolean): void {
+    this.labelsVisible = v;
+    for (const am of this.active.values()) {
+      if (am.label) am.label.visible = v;
+    }
+  }
 
   async spawn(msg: MessageSentMessage, config: NormalizedConfig): Promise<void> {
     const channel = config.channels[msg.channel];
@@ -58,6 +66,7 @@ export class MessageAnimator {
     if (msg.label) {
       label = createLabelSprite(msg.label);
       label.position.set(start.x, start.y + 0.5, start.z);
+      label.visible = this.labelsVisible;
       this.root.add(label);
     }
 

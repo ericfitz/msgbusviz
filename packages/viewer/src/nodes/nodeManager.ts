@@ -51,6 +51,10 @@ export class NodeManager {
     }
   }
 
+  updateWorldMatrices(): void {
+    this.root.updateMatrixWorld(true);
+  }
+
   computeBoundingBox(): THREE.Box3 {
     const box = new THREE.Box3();
     box.setFromObject(this.root);
