@@ -58,6 +58,14 @@ export class Viewer {
     this.sceneRoot?.dispose();
   }
 
+  __internals(): {
+    scene: import('three').Scene;
+    edges: EdgeManager;
+    animator: MessageAnimator;
+  } {
+    return { scene: this.sceneRoot.scene, edges: this.edges, animator: this.animator };
+  }
+
   private async boot(): Promise<void> {
     this.sceneRoot = createSceneRoot(this.opts.container);
     this.orbit = createOrbitControls(this.sceneRoot.camera, this.sceneRoot.renderer.domElement);
