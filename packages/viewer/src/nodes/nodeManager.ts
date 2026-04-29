@@ -57,19 +57,15 @@ export class NodeManager {
 
   computeBoundingBox(): THREE.Box3 {
     const box = new THREE.Box3();
-    const tmp = new THREE.Box3();
-    const tmpVec = new THREE.Vector3();
-    this.root.traverse((obj) => {
-      const mesh = obj as THREE.Mesh;
-      if (!mesh.isMesh || !mesh.geometry) return;
-      mesh.geometry.computeBoundingBox?.();
-      const local = mesh.geometry.boundingBox;
-      if (!local) return;
-      tmp.copy(local).applyMatrix4(mesh.matrixWorld);
-      box.expandByPoint(tmp.min);
-      box.expandByPoint(tmp.max);
-      void tmpVec;
-    });
+    const labelPad = 1.4;
+    for (const view of this.views.values()) {
+      const p = view.group.position;
+      const halfX = 0.6 * view.group.scale.x;
+      const halfY = 0.6 * view.group.scale.y;
+      const halfZ = 0.6 * view.group.scale.z;
+      box.expandByPoint(new THREE.Vector3(p.x - halfX, p.y - halfY, p.z - halfZ));
+      box.expandByPoint(new THREE.Vector3(p.x + halfX, p.y + halfY + labelPad, p.z + halfZ));
+    }
     return box;
   }
 
