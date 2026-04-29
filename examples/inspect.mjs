@@ -8,7 +8,9 @@ const port = process.argv[2] ?? '8080';
 const url = `http://localhost:${port}/`;
 
 const browser = await chromium.launch({ headless: true });
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+const W = Number(process.env.MBV_W ?? 1280);
+const H = Number(process.env.MBV_H ?? 800);
+const ctx = await browser.newContext({ viewport: { width: W, height: H } });
 const page = await ctx.newPage();
 page.on('console', (m) => console.log('[console]', m.type(), m.text()));
 page.on('pageerror', (e) => console.log('[pageerror]', e.message));

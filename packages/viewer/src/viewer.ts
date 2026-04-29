@@ -95,6 +95,7 @@ export class Viewer {
     this.animator = new MessageAnimator(this.edges, baseUrl);
     this.animator.attach(this.sceneRoot.scene);
 
+    const buildId = '2026-04-29-fitfix-3';
     if (this.current.camera) {
       this.sceneRoot.camera.position.set(...this.current.camera.position);
       this.sceneRoot.camera.lookAt(...this.current.camera.lookAt);
@@ -102,18 +103,28 @@ export class Viewer {
       this.orbit.controls.update();
       this.orbit.captureInitial();
     } else {
-      const refit = () => {
+      const refit = (label: string) => {
         this.sceneRoot.resize();
         this.fitToGraph();
         this.orbit.captureInitial();
+        const cam = this.sceneRoot.camera;
+        const tgt = this.orbit.controls.target;
+        // eslint-disable-next-line no-console
+        console.info(
+          `[msgbusviz ${buildId}] refit(${label}): aspect=${cam.aspect.toFixed(2)} ` +
+          `pos=[${cam.position.x.toFixed(1)}, ${cam.position.y.toFixed(1)}, ${cam.position.z.toFixed(1)}] ` +
+          `target=[${tgt.x.toFixed(1)}, ${tgt.y.toFixed(1)}, ${tgt.z.toFixed(1)}]`,
+        );
       };
-      refit();
-      requestAnimationFrame(refit);
-      requestAnimationFrame(() => requestAnimationFrame(refit));
+      refit('boot');
+      requestAnimationFrame(() => refit('frame1'));
+      requestAnimationFrame(() => requestAnimationFrame(() => refit('frame2')));
       this.sceneRoot.onResize(() => {
         if (!this.userHasOrbited) {
           this.fitToGraph();
           this.orbit.captureInitial();
+          // eslint-disable-next-line no-console
+          console.info(`[msgbusviz ${buildId}] refit(resize)`);
         }
       });
       this.orbit.controls.addEventListener('start', () => { this.userHasOrbited = true; });
