@@ -32,8 +32,12 @@ export function createHttpHandler(deps: HttpDeps): http.RequestListener {
     if (req.method !== 'GET') {
       res.writeHead(405); res.end('method not allowed'); return;
     }
-    const url = new URL(req.url ?? '/', 'http://localhost');
-    const pathname = url.pathname;
+    const rawPath = (req.url ?? '/').split('?')[0] ?? '/';
+    const pathname = decodePath(rawPath);
+    if (pathname.includes('/../') || pathname.endsWith('/..') || pathname.includes('\0')) {
+      send(res, 403, 'text/plain; charset=utf-8', 'forbidden');
+      return;
+    }
 
     if (pathname === '/' || pathname === '/index.html') {
       send(res, 200, MIME['.html']!, deps.getViewerHtml());
@@ -59,13 +63,6 @@ export function createHttpHandler(deps: HttpDeps): http.RequestListener {
       const rel = decodeURIComponent(pathname.slice('/assets/'.length));
       serveAsset(res, deps.configDir, rel);
       return;
-    }
-    // A path with multiple segments that didn't match /assets/ could be a path-traversal
-    // escape (e.g. /assets/../etc/passwd normalises to /etc/passwd via fetch/URL).
-    // Single-segment unknown paths (e.g. /banana) are plain 404s.
-    const segments = pathname.split('/').filter(Boolean);
-    if (segments.length > 1) {
-      send(res, 403, 'text/plain; charset=utf-8', 'forbidden'); return;
     }
     send(res, 404, 'text/plain; charset=utf-8', 'not found');
   };
@@ -98,6 +95,14 @@ function serveAsset(res: http.ServerResponse, configDir: string, rel: string): v
 function send(res: http.ServerResponse, status: number, mime: string, body: string): void {
   res.writeHead(status, { 'content-type': mime });
   res.end(body);
+}
+
+function decodePath(raw: string): string {
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
 }
 
 export function dumpYaml(config: NormalizedConfig): string {

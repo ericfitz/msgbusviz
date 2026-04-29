@@ -44,9 +44,19 @@ channels: {}
     fs.rmSync(dir, { recursive: true, force: true });
   });
 
-  async function get(path: string): Promise<{ status: number; body: string }> {
-    const res = await fetch(`http://127.0.0.1:${port}${path}`);
-    return { status: res.status, body: await res.text() };
+  async function get(reqPath: string): Promise<{ status: number; body: string }> {
+    return new Promise((resolve, reject) => {
+      const req = http.request(
+        { host: '127.0.0.1', port, method: 'GET', path: reqPath },
+        (res) => {
+          const chunks: Buffer[] = [];
+          res.on('data', (c) => chunks.push(c as Buffer));
+          res.on('end', () => resolve({ status: res.statusCode ?? 0, body: Buffer.concat(chunks).toString('utf8') }));
+        },
+      );
+      req.on('error', reject);
+      req.end();
+    });
   }
 
   it('GET / serves viewer html', async () => {
