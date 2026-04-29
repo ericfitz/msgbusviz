@@ -40,11 +40,11 @@ export function createHttpHandler(deps: HttpDeps): http.RequestListener {
     }
 
     if (pathname === '/' || pathname === '/index.html') {
-      send(res, 200, MIME['.html']!, deps.getViewerHtml());
+      sendNoCache(res, 200, MIME['.html']!, deps.getViewerHtml());
       return;
     }
     if (pathname === '/viewer.js') {
-      send(res, 200, MIME['.js']!, deps.getViewerJs());
+      sendNoCache(res, 200, MIME['.js']!, deps.getViewerJs());
       return;
     }
     if (pathname === '/config.yaml') {
@@ -94,6 +94,15 @@ function serveAsset(res: http.ServerResponse, configDir: string, rel: string): v
 
 function send(res: http.ServerResponse, status: number, mime: string, body: string): void {
   res.writeHead(status, { 'content-type': mime });
+  res.end(body);
+}
+
+function sendNoCache(res: http.ServerResponse, status: number, mime: string, body: string): void {
+  res.writeHead(status, {
+    'content-type': mime,
+    'cache-control': 'no-store, no-cache, must-revalidate',
+    pragma: 'no-cache',
+  });
   res.end(body);
 }
 

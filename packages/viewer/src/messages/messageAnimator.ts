@@ -94,9 +94,8 @@ export class MessageAnimator {
       }
       const p = curve.getPoint(eased);
       const speedShape = 4 * t * (1 - t);
-      const size = config.channels[am.channel]?.size ?? 1;
-      const sizeScale = 1 / (1 + size);
-      const wanderMag = 0.25 * speedShape * sizeScale;
+      const size = Math.max(0.1, config.channels[am.channel]?.size ?? 1);
+      const wanderMag = 0.15 * speedShape / size;
       const wx = (Math.random() - 0.5) * 2 * wanderMag;
       const wy = (Math.random() - 0.5) * 2 * wanderMag;
       const wz = (Math.random() - 0.5) * 2 * wanderMag;
