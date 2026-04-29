@@ -2,7 +2,14 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { WebSocketServer } from 'ws';
-import { loadConfigFromString, normalize, type NormalizedConfig } from '@msgbusviz/core';
+import {
+  ConfigError,
+  isMessagePrimitive,
+  isNodePrimitive,
+  loadConfigFromString,
+  normalize,
+  type NormalizedConfig,
+} from '@msgbusviz/core';
 import { Hub, type HubLogger } from './hub.js';
 import { createHttpHandler } from './http.js';
 import { attachWebSocketServer } from './ws.js';
@@ -30,6 +37,7 @@ export async function startServer(opts: StartOptions): Promise<RunningServer> {
   const configDir = path.dirname(absPath);
   const rawYaml = fs.readFileSync(absPath, 'utf8');
   const initial = normalize(loadConfigFromString(rawYaml).config);
+  validateAssetReferences(initial, configDir);
 
   let currentConfig: NormalizedConfig = initial;
   let currentRaw = rawYaml;
@@ -83,4 +91,33 @@ export async function startServer(opts: StartOptions): Promise<RunningServer> {
       await new Promise<void>((resolve) => server.close(() => resolve()));
     },
   };
+}
+
+function validateAssetReferences(config: NormalizedConfig, configDir: string): void {
+  for (const [key, node] of Object.entries(config.nodes)) {
+    if (isNodePrimitive(node.model)) continue;
+    if (/^https?:\/\//.test(node.model)) continue;
+    const target = path.resolve(configDir, node.model);
+    if (!target.startsWith(path.resolve(configDir))) {
+      throw new ConfigError(`nodes.${key}.model`, `path "${node.model}" escapes the config directory`);
+    }
+    if (!fs.existsSync(target)) {
+      throw new ConfigError(
+        `nodes.${key}.model`,
+        `"${node.model}" is not a built-in primitive and no file exists at ${target}`,
+      );
+    }
+  }
+  for (const [key, channel] of Object.entries(config.channels)) {
+    const m = channel.messageModel;
+    if (isMessagePrimitive(m)) continue;
+    if (/^https?:\/\//.test(m)) continue;
+    const target = path.resolve(configDir, m);
+    if (!fs.existsSync(target)) {
+      throw new ConfigError(
+        `channels.${key}.messageModel`,
+        `"${m}" is not a built-in message primitive and no file exists at ${target}`,
+      );
+    }
+  }
 }
