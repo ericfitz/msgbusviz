@@ -1,0 +1,32 @@
+{
+  "name": "@msgbusviz/server",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "msgbusviz": "./dist/cli.js"
+  },
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && chmod +x dist/cli.js",
+    "test": "vitest run",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@msgbusviz/core": "0.1.0",
+    "@msgbusviz/protocol": "0.1.0",
+    "chokidar": "^3.6.0",
+    "js-yaml": "^4.1.0",
+    "open": "^10.1.0",
+    "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/ws": "^8.5.10",
+    "vitest": "^1.4.0"
+  }
+}
