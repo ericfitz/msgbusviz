@@ -17,11 +17,14 @@ export function createOrbitControls(camera: THREE.PerspectiveCamera, dom: HTMLEl
 
   function fitToBox(box: THREE.Box3): void {
     if (box.isEmpty()) return;
-    const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
-    const maxDim = Math.max(size.x, size.y, size.z) || 1;
-    const fov = camera.fov * (Math.PI / 180);
-    const distance = (maxDim / Math.tan(fov / 2)) * 1.4;
+    const sphere = box.getBoundingSphere(new THREE.Sphere());
+    const radius = Math.max(sphere.radius, 0.5);
+    const fovV = camera.fov * (Math.PI / 180);
+    const fovH = 2 * Math.atan(Math.tan(fovV / 2) * camera.aspect);
+    const distV = radius / Math.sin(fovV / 2);
+    const distH = radius / Math.sin(fovH / 2);
+    const distance = Math.max(distV, distH) * 1.15;
     const dir = new THREE.Vector3(0, 0.5, 1).normalize();
     camera.position.copy(center.clone().add(dir.multiplyScalar(distance)));
     controls.target.copy(center);

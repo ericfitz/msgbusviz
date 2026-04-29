@@ -5,7 +5,7 @@ import type { EdgeManager } from '../edges/edgeManager.js';
 import { ObjectPool } from './pool.js';
 import { resolveMessageModelSync } from '../nodes/modelResolver.js';
 import { createLabelSprite } from '../nodes/label.js';
-import { easeInOutQuad, jitterRgb, jitterVec, wanderOffset } from './math.js';
+import { easeInOutQuad, jitterRgb } from './math.js';
 
 interface ActiveMessage {
   id: string;
@@ -58,8 +58,7 @@ export class MessageAnimator {
     if (!curve) { this.pool.release(poolKey, mesh); return; }
 
     const start = curve.getPoint(0);
-    const j = jitterVec(0.1);
-    mesh.position.set(start.x + j[0], start.y + j[1], start.z + j[2]);
+    mesh.position.set(start.x, start.y, start.z);
     this.root.add(mesh);
 
     let label: THREE.Sprite | undefined;
@@ -83,7 +82,7 @@ export class MessageAnimator {
     });
   }
 
-  tick(_deltaSeconds: number, nowMs: number, _config: NormalizedConfig): void {
+  tick(_deltaSeconds: number, nowMs: number, config: NormalizedConfig): void {
     for (const am of [...this.active.values()]) {
       const elapsed = nowMs - am.startMs;
       const t = Math.max(0, Math.min(1, elapsed / am.durationMs));
@@ -94,8 +93,14 @@ export class MessageAnimator {
         continue;
       }
       const p = curve.getPoint(eased);
-      const w = wanderOffset(t, 0.3);
-      am.mesh.position.set(p.x + w[0], p.y + w[1], p.z + w[2]);
+      const speedShape = 4 * t * (1 - t);
+      const size = config.channels[am.channel]?.size ?? 1;
+      const sizeScale = 1 / (1 + size);
+      const wanderMag = 0.25 * speedShape * sizeScale;
+      const wx = (Math.random() - 0.5) * 2 * wanderMag;
+      const wy = (Math.random() - 0.5) * 2 * wanderMag;
+      const wz = (Math.random() - 0.5) * 2 * wanderMag;
+      am.mesh.position.set(p.x + wx, p.y + wy, p.z + wz);
       if (am.label) am.label.position.set(p.x, p.y + 0.5, p.z);
       if (t >= 1) this.retire(am);
     }

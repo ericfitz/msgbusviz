@@ -99,10 +99,17 @@ export class Viewer {
       this.sceneRoot.camera.lookAt(...this.current.camera.lookAt);
       this.orbit.controls.target.set(...this.current.camera.lookAt);
       this.orbit.controls.update();
+      this.orbit.captureInitial();
     } else {
-      this.fitToGraph();
+      const refit = () => {
+        this.sceneRoot.resize();
+        this.fitToGraph();
+        this.orbit.captureInitial();
+      };
+      refit();
+      requestAnimationFrame(refit);
+      requestAnimationFrame(() => requestAnimationFrame(refit));
     }
-    this.orbit.captureInitial();
 
     this.loop = startAnimationLoop();
     this.loop.add((delta, now) => {

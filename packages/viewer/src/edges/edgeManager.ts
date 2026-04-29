@@ -6,7 +6,6 @@ interface ArcView {
   key: string;
   curve: THREE.QuadraticBezierCurve3;
   line: THREE.Line;
-  arrow: THREE.Mesh;
   particles: THREE.Points;
   particleStyleIndex: number;
 }
@@ -35,7 +34,6 @@ export class EdgeManager {
       if (!found) {
         const v = this.views.get(id)!;
         this.root.remove(v.line);
-        this.root.remove(v.arrow);
         this.root.remove(v.particles);
         this.views.delete(id);
       }
@@ -59,7 +57,6 @@ export class EdgeManager {
         const view: ArcView = { key: id, ...partial };
         this.views.set(id, view);
         this.root.add(view.line);
-        this.root.add(view.arrow);
         this.root.add(view.particles);
       } else {
         updateArcGeometry(existing, curve, channel.color);
@@ -99,12 +96,6 @@ function createArcView(
   const lineMat = new THREE.LineBasicMaterial({ color: channelColor, transparent: true, opacity: 0.35 });
   const line = new THREE.Line(lineGeom, lineMat);
 
-  const arrow = new THREE.Mesh(
-    new THREE.ConeGeometry(0.15, 0.35, 12),
-    new THREE.MeshLambertMaterial({ color: channelColor }),
-  );
-  positionArrow(arrow, curve);
-
   const particleGeom = new THREE.BufferGeometry();
   const positions = new Float32Array(PARTICLE_COUNT * 3);
   particleGeom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -118,7 +109,7 @@ function createArcView(
   const particles = new THREE.Points(particleGeom, particleMat);
   particles.userData = { offset: 0 };
 
-  return { curve, line, arrow, particles, particleStyleIndex };
+  return { curve, line, particles, particleStyleIndex };
 }
 
 function updateArcGeometry(view: ArcView, curve: THREE.QuadraticBezierCurve3, color: string): void {
@@ -127,16 +118,4 @@ function updateArcGeometry(view: ArcView, curve: THREE.QuadraticBezierCurve3, co
   view.line.geometry.dispose();
   view.line.geometry = new THREE.BufferGeometry().setFromPoints(points);
   (view.line.material as THREE.LineBasicMaterial).color.set(color);
-  (view.arrow.material as THREE.MeshLambertMaterial).color.set(color);
-  positionArrow(view.arrow, curve);
-}
-
-function positionArrow(arrow: THREE.Mesh, curve: THREE.QuadraticBezierCurve3): void {
-  const tip = curve.getPoint(0.97);
-  const just = curve.getPoint(0.94);
-  arrow.position.copy(tip);
-  const dir = new THREE.Vector3().subVectors(tip, just).normalize();
-  const up = new THREE.Vector3(0, 1, 0);
-  const quat = new THREE.Quaternion().setFromUnitVectors(up, dir);
-  arrow.quaternion.copy(quat);
 }
