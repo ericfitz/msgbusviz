@@ -2,15 +2,18 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { Client, type WsFactory, type WsLike } from './index.js';
 
 class FakeWs implements WsLike {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   listeners = new Map<string, ((ev: any) => void)[]>();
   sent: string[] = [];
   closed = false;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   addEventListener(type: any, l: any): void {
     const arr = this.listeners.get(type) ?? [];
     arr.push(l);
     this.listeners.set(type, arr);
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   removeEventListener(type: any, l: any): void {
     const arr = this.listeners.get(type) ?? [];
     this.listeners.set(type, arr.filter((x) => x !== l));
@@ -18,6 +21,7 @@ class FakeWs implements WsLike {
   send(data: string): void { this.sent.push(data); }
   close(): void { this.closed = true; this.fire('close', {}); }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fire(type: string, ev: any): void {
     for (const l of this.listeners.get(type) ?? []) l(ev);
   }

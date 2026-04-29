@@ -1,7 +1,9 @@
 export interface WsLike {
   send(data: string): void;
   close(): void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   addEventListener(type: 'open' | 'message' | 'close' | 'error', listener: (ev: any) => void): void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   removeEventListener(type: 'open' | 'message' | 'close' | 'error', listener: (ev: any) => void): void;
 }
 

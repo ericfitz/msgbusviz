@@ -129,6 +129,7 @@ export class Client {
     this.ws = ws;
 
     const onOpen = () => { /* wait for hello */ };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onMessage = (ev: any) => {
       let data: ServerToClientMessage;
       try { data = JSON.parse(typeof ev.data === 'string' ? ev.data : String(ev.data)); }
@@ -175,6 +176,7 @@ export class Client {
       }
       this.scheduleReconnect();
     };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onError = (ev: any) => {
       this.opts.onError?.(new ClientError('socket error', ev));
     };
