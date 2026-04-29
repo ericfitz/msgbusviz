@@ -57,7 +57,19 @@ export class NodeManager {
 
   computeBoundingBox(): THREE.Box3 {
     const box = new THREE.Box3();
-    box.setFromObject(this.root);
+    const tmp = new THREE.Box3();
+    const tmpVec = new THREE.Vector3();
+    this.root.traverse((obj) => {
+      const mesh = obj as THREE.Mesh;
+      if (!mesh.isMesh || !mesh.geometry) return;
+      mesh.geometry.computeBoundingBox?.();
+      const local = mesh.geometry.boundingBox;
+      if (!local) return;
+      tmp.copy(local).applyMatrix4(mesh.matrixWorld);
+      box.expandByPoint(tmp.min);
+      box.expandByPoint(tmp.max);
+      void tmpVec;
+    });
     return box;
   }
 

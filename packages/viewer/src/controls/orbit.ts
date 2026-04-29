@@ -11,7 +11,7 @@ export interface OrbitWrapper {
 
 export function createOrbitControls(camera: THREE.PerspectiveCamera, dom: HTMLElement): OrbitWrapper {
   const controls = new OrbitControls(camera, dom);
-  controls.enableDamping = true;
+  controls.enableDamping = false;
   let initialPos = camera.position.clone();
   let initialTarget = controls.target.clone();
 

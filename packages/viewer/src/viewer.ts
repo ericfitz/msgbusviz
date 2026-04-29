@@ -36,6 +36,7 @@ export class Viewer {
   private graph!: Graph;
   private positions!: Map<string, [number, number, number]>;
   private labelsVisible = true;
+  private userHasOrbited = false;
   private readyPromise: Promise<void>;
 
   constructor(private opts: ViewerOptions) {
@@ -109,6 +110,13 @@ export class Viewer {
       refit();
       requestAnimationFrame(refit);
       requestAnimationFrame(() => requestAnimationFrame(refit));
+      this.sceneRoot.onResize(() => {
+        if (!this.userHasOrbited) {
+          this.fitToGraph();
+          this.orbit.captureInitial();
+        }
+      });
+      this.orbit.controls.addEventListener('start', () => { this.userHasOrbited = true; });
     }
 
     this.loop = startAnimationLoop();

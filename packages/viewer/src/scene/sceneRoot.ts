@@ -5,6 +5,7 @@ export interface SceneRoot {
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGLRenderer;
   resize(): void;
+  onResize(fn: () => void): void;
   dispose(): void;
 }
 
@@ -26,6 +27,8 @@ export function createSceneRoot(container: HTMLElement): SceneRoot {
   renderer.setPixelRatio(window.devicePixelRatio);
   container.appendChild(renderer.domElement);
 
+  const resizeListeners: (() => void)[] = [];
+
   function resize(): void {
     const rect = container.getBoundingClientRect();
     const w = Math.max(1, Math.floor(rect.width));
@@ -33,7 +36,10 @@ export function createSceneRoot(container: HTMLElement): SceneRoot {
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
+    for (const fn of resizeListeners) fn();
   }
+
+  function onResize(fn: () => void): void { resizeListeners.push(fn); }
 
   resize();
   const ro = new ResizeObserver(resize);
@@ -45,5 +51,5 @@ export function createSceneRoot(container: HTMLElement): SceneRoot {
     if (renderer.domElement.parentNode === container) container.removeChild(renderer.domElement);
   }
 
-  return { scene, camera, renderer, resize, dispose };
+  return { scene, camera, renderer, resize, onResize, dispose };
 }

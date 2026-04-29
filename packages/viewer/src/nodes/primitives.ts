@@ -34,12 +34,12 @@ function buildClient(color: string): THREE.Object3D {
     new THREE.MeshLambertMaterial({ color }),
   );
   screen.position.y = 0.4;
-  const stand = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.05, 0.15, 0.3, 12),
+  const base = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.18, 0.18, 0.05, 16),
     new THREE.MeshLambertMaterial({ color }),
   );
-  stand.position.y = -0.05;
-  root.add(screen); root.add(stand);
+  base.position.y = 0;
+  root.add(screen); root.add(base);
   return root;
 }
 
