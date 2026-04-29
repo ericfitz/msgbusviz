@@ -1,5 +1,7 @@
 node_modules/
 dist/
+dist-lib/
+dist-bundle/
 *.tsbuildinfo
 .vite/
 .superpowers/
@@ -7,3 +9,4 @@ playwright-report/
 test-results/
 coverage/
 .DS_Store
+tests/e2e/**/*.js
