@@ -36,7 +36,7 @@ describe('watcher', () => {
       onUpdate: (cfg) => { updated = cfg; },
       onError: () => {},
     }, { info: () => {}, warn: () => {} });
-    expect(updated?.nodes['A']).toBeTruthy();
+    expect((updated as unknown as NormalizedConfig).nodes['A']).toBeTruthy();
   });
 
   it('reload() reports invalid YAML via onError', () => {
