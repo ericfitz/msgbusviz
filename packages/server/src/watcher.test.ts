@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import type { NormalizedConfig } from '@msgbusviz/core';
 import { watchConfig, reload } from './watcher.js';
 
 const yaml1 = `
@@ -30,12 +31,12 @@ describe('watcher', () => {
   afterEach(() => { fs.rmSync(dir, { recursive: true, force: true }); });
 
   it('reload() reads and normalizes the file', () => {
-    let updated: any = null;
+    let updated: NormalizedConfig | null = null;
     reload(file, {
       onUpdate: (cfg) => { updated = cfg; },
       onError: () => {},
     }, { info: () => {}, warn: () => {} });
-    expect(updated.nodes.A).toBeTruthy();
+    expect(updated?.nodes['A']).toBeTruthy();
   });
 
   it('reload() reports invalid YAML via onError', () => {

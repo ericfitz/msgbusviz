@@ -1,4 +1,4 @@
-import type { LayoutAlgorithm, LayoutOptions } from './types.js';
+import type { LayoutAlgorithm } from './types.js';
 import type { Graph } from '../graph/graph.js';
 import type { Vec3 } from '../config/types.js';
 

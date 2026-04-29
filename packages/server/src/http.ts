@@ -1,4 +1,4 @@
-import http from 'node:http';
+import type http from 'node:http';
 import path from 'node:path';
 import fs from 'node:fs';
 import yaml from 'js-yaml';

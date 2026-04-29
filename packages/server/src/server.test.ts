@@ -48,11 +48,11 @@ describe('startServer', () => {
 
   it('accepts a WS client and sends hello', async () => {
     const ws = new WebSocket(`${running.url.replace('http', 'ws')}/ws`);
-    const hello: any = await new Promise((resolve, reject) => {
-      ws.once('message', (data) => resolve(JSON.parse(data.toString())));
+    const hello = await new Promise<Record<string, unknown>>((resolve, reject) => {
+      ws.once('message', (data) => resolve(JSON.parse(data.toString()) as Record<string, unknown>));
       ws.once('error', reject);
     });
-    expect(hello.type).toBe('hello');
+    expect(hello['type']).toBe('hello');
     ws.close();
   });
 
@@ -73,15 +73,15 @@ describe('startServer', () => {
     // Wait for both hellos to be received
     await Promise.all([aReady, bReady]);
 
-    const got = new Promise<any>((resolve) => b.on('message', (data) => {
-      const msg = JSON.parse(data.toString());
-      if (msg.type === 'messageSent') resolve(msg);
+    const got = new Promise<Record<string, unknown>>((resolve) => b.on('message', (data) => {
+      const msg = JSON.parse(data.toString()) as Record<string, unknown>;
+      if (msg['type'] === 'messageSent') resolve(msg);
     }));
 
     a.send(JSON.stringify({ type: 'sendMessage', channel: 'c1' }));
     const evt = await got;
-    expect(evt.from).toBe('A');
-    expect(evt.to).toBe('B');
+    expect(evt['from']).toBe('A');
+    expect(evt['to']).toBe('B');
     a.close(); b.close();
   });
 });
