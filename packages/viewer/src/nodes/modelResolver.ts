@@ -25,7 +25,14 @@ export async function resolveMessageModel(model: string, color: string, baseUrl:
   return loadGltfClone(resolveAssetUrl(model, baseUrl));
 }
 
-function createMessagePrimitive(name: MessagePrimitive, color: string): THREE.Object3D {
+export function resolveMessageModelSync(model: string, color: string): THREE.Object3D | null {
+  if (isMessagePrimitive(model)) {
+    return createMessagePrimitive(model as MessagePrimitive, color);
+  }
+  return null;
+}
+
+export function createMessagePrimitive(name: MessagePrimitive, color: string): THREE.Object3D {
   const mat = new THREE.MeshLambertMaterial({ color });
   if (name === 'sphere') return new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 12), mat);
   if (name === 'cube')   return new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 0.25), mat);
