@@ -1,10 +1,10 @@
 version: 1
-layout: { mode: grid, spacing: 4 }
+layout: { mode: layered, spacing: 4 }
 defaults:
   channel:
     speed: 1500
 nodes:
-  OpsEngineer: { model: client }
+  OpsAgent: { model: client }
   Coordinator: { model: server }
   FitnessAgent: { model: server }
   SecurityAgent: { model: server }
@@ -15,14 +15,37 @@ nodes:
   SpeedDialHost: { model: server }
   Host: { model: server }
   SourceRepo: { model: server }
+  AgentBus: { model: bus }
 channels:
-  pageLoad: { publishers: [Browser], subscribers: [CDN], color: '#88aaff' }
-  apiCall: { publishers: [Browser], subscribers: [Gateway], color: '#88aaff' }
-  authCheck: { publishers: [Gateway], subscribers: [AuthSvc], color: '#bbbb44' }
-  productList: { publishers: [Gateway], subscribers: [ProductSvc], color: '#44aabb' }
-  orderCreate: { publishers: [Gateway], subscribers: [OrderSvc], color: '#aa44aa' }
-  productCache: { publishers: [ProductSvc], subscribers: [Cache], color: '#44aabb' }
-  productLoad: { publishers: [ProductSvc], subscribers: [ProductDb], color: '#44aabb' }
-  orderWrite: { publishers: [OrderSvc], subscribers: [OrderDb], color: '#aa44aa' }
-  orderEvent: { publishers: [OrderSvc], subscribers: [EventBus], color: '#aa44aa' }
-  invConsume: { publishers: [EventBus], subscribers: [ProductSvc], color: '#444444' }
+  toolCallRequest:
+    {
+      publishers: [OpsAgent, SpeedDialHost],
+      subscribers: [OpsAgent, SpeedDialHost],
+      color: '#88aaff',
+    }
+  toolInvocation:
+    { publishers: [SpeedDialHost, Host], subscribers: [Host, SpeedDialHost], color: '#88aaff' }
+  approvalRequest:
+    { publishers: [OpsAgent, Coordinator], subscribers: [OpsAgent, Coordinator], color: '#88aaff' }
+  agentCommittee:
+    {
+      publishers: [Coordinator, FitnessAgent, SecurityAgent, SafetyAgent, HITLAgent],
+      subscribers: [Coordinator, FitnessAgent, SecurityAgent, SafetyAgent, HITLAgent],
+      color: '#bbbb44',
+    }
+  escalationRequest:
+    {
+      publishers: [Coordinator, Escalator],
+      subscribers: [Coordinator, Escalator],
+      color: '#44aabb',
+    }
+  publishRequest: { publishers: [Coordinator], subscribers: [SpeedDialDeployer], color: '#aa44aa' }
+  commitSource: { publishers: [OpsAgent], subscribers: [SourceRepo], color: '#44aabb' }
+  reviewSource:
+    {
+      publishers: [SpeedDialDeployer, FitnessAgent, SecurityAgent, SafetyAgent, HITLAgent],
+      subscribers: [SourceRepo],
+      color: '#44aabb',
+    }
+  publishTool: { publishers: [SpeedDialDeployer], subscribers: [Host], color: '#aa44aa' }
+  notifyAgentBus: { publishers: [SpeedDialHost], subscribers: [AgentBus], color: '#aa44aa' }
