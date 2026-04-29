@@ -105,7 +105,7 @@ export class MessageAnimator {
 function applyColor(obj: THREE.Object3D, color: string): void {
   obj.traverse((child) => {
     const mesh = child as THREE.Mesh;
-    if ((mesh as any).isMesh && mesh.material) {
+    if ((mesh as { isMesh?: boolean }).isMesh && mesh.material) {
       const mat = mesh.material as THREE.MeshLambertMaterial;
       if (mat.color) mat.color.set(color);
     }

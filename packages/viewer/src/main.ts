@@ -19,7 +19,7 @@ async function boot(): Promise<void> {
   document.getElementById('btn-fit')?.addEventListener('click', () => v.fitToGraph());
   document.getElementById('btn-labels')?.addEventListener('click', () => v.toggleLabels());
 
-  (window as any).viewer = v;
+  (window as Window & { viewer?: unknown }).viewer = v;
 }
 
 void boot();
