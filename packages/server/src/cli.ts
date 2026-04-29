@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { startServer } from './server.js';
 import { createLogger } from './logger.js';
 
@@ -109,6 +111,18 @@ export async function runCli(argv: string[]): Promise<number> {
   return 0;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  runCli(process.argv.slice(2)).then((code) => process.exit(code));
+if (isMainModule()) {
+  void runCli(process.argv.slice(2)).then((code) => process.exit(code));
+}
+
+function isMainModule(): boolean {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  const here = fileURLToPath(import.meta.url);
+  if (entry === here) return true;
+  try {
+    return fs.realpathSync(entry) === here;
+  } catch {
+    return false;
+  }
 }
