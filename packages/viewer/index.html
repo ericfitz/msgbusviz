@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>msgbusviz</title>
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; background: #0a0a0a; color: #e0e0e0; font-family: system-ui, sans-serif; }
+    #viz { width: 100vw; height: 100vh; }
+    #toolbar { position: fixed; top: 8px; right: 8px; background: rgba(20,20,20,0.7); border-radius: 4px; padding: 6px 10px; font-size: 12px; }
+    #toolbar button { margin-left: 4px; background: #2a2a2a; color: #e0e0e0; border: 1px solid #444; padding: 4px 8px; border-radius: 3px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div id="viz"></div>
+  <div id="toolbar">
+    <button id="btn-reset">Reset</button>
+    <button id="btn-fit">Fit</button>
+    <button id="btn-labels">Labels (L)</button>
+    <span id="status"></span>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
