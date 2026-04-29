@@ -66,7 +66,7 @@ export class MessageAnimator {
       channel: msg.channel,
       publisher: msg.from,
       subscriber: msg.to,
-      startMs: msg.spawnedAt,
+      startMs: performance.now(),
       durationMs: channel.speed,
       mesh,
       poolKey,

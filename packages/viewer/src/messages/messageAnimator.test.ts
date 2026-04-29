@@ -33,9 +33,9 @@ describe('MessageAnimator', () => {
   });
 
   it('spawns and retires a message after its duration', async () => {
-    const t0 = Date.now();
+    const t0 = performance.now();
     await animator.spawn(
-      { type: 'messageSent', id: 'm1', channel: 'c1', from: 'A', to: 'B', color: '#888888', spawnedAt: t0 },
+      { type: 'messageSent', id: 'm1', channel: 'c1', from: 'A', to: 'B', color: '#888888', spawnedAt: Date.now() },
       cfg,
     );
     expect(animator.activeCount()).toBe(1);
