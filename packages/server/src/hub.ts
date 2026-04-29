@@ -26,7 +26,7 @@ export class Hub {
   private channelPatches = new Map<string, ChannelPatch>();
   private idCounter = 0;
   private editEnabled: boolean;
-  private onSaveConfig?: (config: unknown) => void;
+  private onSaveConfig: ((config: unknown) => void) | undefined;
 
   constructor(
     private config: NormalizedConfig,
