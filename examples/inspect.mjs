@@ -25,6 +25,15 @@ const summary = await page.evaluate(() => {
   const i = window.__viewerInternals;
   const cam = v.sceneRoot.camera;
   const ctrl = v.orbit.controls;
+  const box = v.nodes.computeBoundingBox();
+  const bbInfo = {
+    min: [box.min.x, box.min.y, box.min.z],
+    max: [box.max.x, box.max.y, box.max.z],
+  };
+  const nodePositions = {};
+  for (const [k, view] of v.nodes['views']) {
+    nodePositions[k] = [view.group.position.x, view.group.position.y, view.group.position.z];
+  }
 
   const counts = { meshes: 0, lines: 0, points: 0, sprites: 0, groups: 0, other: 0 };
   const cones = [];
@@ -50,8 +59,9 @@ const summary = await page.evaluate(() => {
     }
   });
 
-  const bbox = i.edges['root']?.parent ? null : null;
   return {
+    bbox: bbInfo,
+    nodePositions,
     cam: {
       position: cam.position.toArray(),
       target: ctrl.target.toArray(),

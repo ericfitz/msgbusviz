@@ -63,7 +63,7 @@ export class NodeManager {
       const halfX = 0.6 * view.group.scale.x;
       const halfY = 0.6 * view.group.scale.y;
       const halfZ = 0.6 * view.group.scale.z;
-      box.expandByPoint(new THREE.Vector3(p.x - halfX, p.y - halfY, p.z - halfZ));
+      box.expandByPoint(new THREE.Vector3(p.x - halfX, p.y - halfY - labelPad, p.z - halfZ));
       box.expandByPoint(new THREE.Vector3(p.x + halfX, p.y + halfY + labelPad, p.z + halfZ));
     }
     return box;
