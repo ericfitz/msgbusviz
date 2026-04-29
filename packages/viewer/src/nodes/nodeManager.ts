@@ -56,6 +56,23 @@ export class NodeManager {
   }
 
   computeBoundingBox(): THREE.Box3 {
+    return this.computeNodeBox();
+  }
+
+  computeNodeBox(): THREE.Box3 {
+    const box = new THREE.Box3();
+    for (const view of this.views.values()) {
+      const p = view.group.position;
+      const halfX = 0.6 * view.group.scale.x;
+      const halfY = 0.6 * view.group.scale.y;
+      const halfZ = 0.6 * view.group.scale.z;
+      box.expandByPoint(new THREE.Vector3(p.x - halfX, p.y - halfY, p.z - halfZ));
+      box.expandByPoint(new THREE.Vector3(p.x + halfX, p.y + halfY, p.z + halfZ));
+    }
+    return box;
+  }
+
+  computeFitBox(): THREE.Box3 {
     const box = new THREE.Box3();
     const labelPad = 1.4;
     for (const view of this.views.values()) {
@@ -63,7 +80,7 @@ export class NodeManager {
       const halfX = 0.6 * view.group.scale.x;
       const halfY = 0.6 * view.group.scale.y;
       const halfZ = 0.6 * view.group.scale.z;
-      box.expandByPoint(new THREE.Vector3(p.x - halfX, p.y - halfY - labelPad, p.z - halfZ));
+      box.expandByPoint(new THREE.Vector3(p.x - halfX, p.y - halfY, p.z - halfZ));
       box.expandByPoint(new THREE.Vector3(p.x + halfX, p.y + halfY + labelPad, p.z + halfZ));
     }
     return box;

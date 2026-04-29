@@ -53,7 +53,7 @@ export class Viewer {
 
   fitToGraph(): void {
     this.nodes.updateWorldMatrices();
-    this.orbit.fitToBox(this.nodes.computeBoundingBox());
+    this.orbit.fitToBox(this.nodes.computeFitBox(), this.nodes.computeNodeBox());
   }
   resetView(): void { this.orbit.reset(); }
 

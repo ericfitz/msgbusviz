@@ -3,7 +3,7 @@ import * as THREE from 'three';
 
 export interface OrbitWrapper {
   controls: OrbitControls;
-  fitToBox(box: THREE.Box3): void;
+  fitToBox(extentBox: THREE.Box3, centerBox?: THREE.Box3): void;
   captureInitial(): void;
   reset(): void;
   dispose(): void;
@@ -15,36 +15,45 @@ export function createOrbitControls(camera: THREE.PerspectiveCamera, dom: HTMLEl
   let initialPos = camera.position.clone();
   let initialTarget = controls.target.clone();
 
-  function fitToBox(box: THREE.Box3): void {
-    if (box.isEmpty()) return;
-    const center = box.getCenter(new THREE.Vector3());
-    const size = box.getSize(new THREE.Vector3());
+  function fitToBox(extentBox: THREE.Box3, centerBox?: THREE.Box3): void {
+    if (extentBox.isEmpty()) return;
+    const lookCenter = (centerBox ?? extentBox).getCenter(new THREE.Vector3());
     const dir = new THREE.Vector3(0, 0.5, 1).normalize();
-    // The view direction tilts upward (positive y component), so when looking
-    // down at a graph in the X-Y plane, the on-screen vertical extent of the
-    // graph is the world Y-extent foreshortened by the camera's pitch. The
-    // horizontal extent is the world X-extent, full strength.
-    // Project the box's world extents onto the camera's viewing plane to get
-    // the effective screen-aligned half-width and half-height.
-    const halfWorldX = size.x / 2;
-    const halfWorldY = size.y / 2;
-    const halfWorldZ = size.z / 2;
-    // Camera's up vector projected onto world: dir is "up-and-forward", so
-    // the screen-up axis is (dir.z, 0, -dir.y) — perpendicular to dir within
-    // the camera's XZ plane (since dir has no x-component).
-    // |up dot worldY| = dir.z; |up dot worldZ| = dir.y
-    // |right dot worldX| = 1 (camera right = world x)
-    const halfScreenH = Math.abs(halfWorldX);
-    const halfScreenV = Math.abs(halfWorldY) * dir.z + Math.abs(halfWorldZ) * dir.y;
+    // Camera's up vector tilts back from world up by the same angle as dir
+    // tilts forward; right vector aligns with world X (since dir.x = 0).
+    //   |up·worldY| = dir.z;  |up·worldZ| = dir.y;  |right·worldX| = 1
+    // For each box corner, project (corner - lookCenter) onto camera's right
+    // and up axes; the largest absolute values are the screen half-extents.
+    let halfScreenH = 0;
+    let halfScreenV = 0;
+    const corners: THREE.Vector3[] = [
+      new THREE.Vector3(extentBox.min.x, extentBox.min.y, extentBox.min.z),
+      new THREE.Vector3(extentBox.min.x, extentBox.min.y, extentBox.max.z),
+      new THREE.Vector3(extentBox.min.x, extentBox.max.y, extentBox.min.z),
+      new THREE.Vector3(extentBox.min.x, extentBox.max.y, extentBox.max.z),
+      new THREE.Vector3(extentBox.max.x, extentBox.min.y, extentBox.min.z),
+      new THREE.Vector3(extentBox.max.x, extentBox.min.y, extentBox.max.z),
+      new THREE.Vector3(extentBox.max.x, extentBox.max.y, extentBox.min.z),
+      new THREE.Vector3(extentBox.max.x, extentBox.max.y, extentBox.max.z),
+    ];
+    for (const c of corners) {
+      const dx = c.x - lookCenter.x;
+      const dy = c.y - lookCenter.y;
+      const dz = c.z - lookCenter.z;
+      const screenH = Math.abs(dx);
+      const screenV = Math.abs(dy * dir.z + dz * dir.y);
+      if (screenH > halfScreenH) halfScreenH = screenH;
+      if (screenV > halfScreenV) halfScreenV = screenV;
+    }
 
     const fovV = camera.fov * (Math.PI / 180);
-    const distV = halfScreenV / Math.tan(fovV / 2);
     const fovH = 2 * Math.atan(Math.tan(fovV / 2) * camera.aspect);
+    const distV = halfScreenV / Math.tan(fovV / 2);
     const distH = halfScreenH / Math.tan(fovH / 2);
-    const distance = Math.max(distV, distH, 1) * 1.25;
-    camera.position.copy(center.clone().add(dir.clone().multiplyScalar(distance)));
-    controls.target.copy(center);
-    camera.lookAt(center);
+    const distance = Math.max(distV, distH, 1) * 1.15;
+    camera.position.copy(lookCenter.clone().add(dir.clone().multiplyScalar(distance)));
+    controls.target.copy(lookCenter);
+    camera.lookAt(lookCenter);
     controls.update();
   }
 
