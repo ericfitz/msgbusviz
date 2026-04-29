@@ -6,6 +6,7 @@ import {
   type RawConfigOutput,
 } from '@msgbusviz/core';
 import { RawConfigSchema } from '@msgbusviz/core';
+import type { Scene } from 'three';
 import { createSceneRoot, type SceneRoot } from './scene/sceneRoot.js';
 import { createOrbitControls, type OrbitWrapper } from './controls/orbit.js';
 import { startAnimationLoop, type AnimationLoop } from './scene/loop.js';
@@ -59,7 +60,7 @@ export class Viewer {
   }
 
   __internals(): {
-    scene: import('three').Scene;
+    scene: Scene;
     edges: EdgeManager;
     animator: MessageAnimator;
   } {

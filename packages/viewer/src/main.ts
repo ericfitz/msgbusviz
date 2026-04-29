@@ -20,7 +20,7 @@ async function boot(): Promise<void> {
   document.getElementById('btn-labels')?.addEventListener('click', () => v.toggleLabels());
 
   (window as Window & { viewer?: unknown }).viewer = v;
-  (window as any).__viewerInternals = v.__internals();
+  (window as Window & { __viewerInternals?: unknown }).__viewerInternals = v.__internals();
 }
 
 void boot();

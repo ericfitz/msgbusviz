@@ -1,0 +1,1 @@
+{"version":3,"file":"primitives.d.ts","sourceRoot":"","sources":["../../src/nodes/primitives.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,KAAK,MAAM,OAAO,CAAC;AAC/B,OAAO,EAAmB,KAAK,aAAa,EAAE,MAAM,iBAAiB,CAAC;AAoFtE,wBAAgB,mBAAmB,CAAC,IAAI,EAAE,aAAa,EAAE,KAAK,EAAE,MAAM,GAAG,KAAK,CAAC,QAAQ,CAatF;AAED,wBAAgB,mBAAmB,CAAC,CAAC,EAAE,MAAM,GAAG,OAAO,CAEtD"}
