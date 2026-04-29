@@ -1,5 +1,5 @@
 version: 1
-layout: { mode: layered, spacing: 4 }
+layout: { mode: force, spacing: 4 }
 defaults:
   channel:
     speed: 1500
@@ -15,7 +15,7 @@ nodes:
   SpeedDialHost: { model: server }
   Host: { model: server }
   SourceRepo: { model: server }
-  AgentBus: { model: bus }
+  AgentBus: { model: queue }
 channels:
   toolCallRequest:
     {
