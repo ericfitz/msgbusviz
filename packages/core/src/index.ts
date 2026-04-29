@@ -10,3 +10,7 @@ export type {
   NormalizedNode,
   NormalizedChannel,
 } from './config/normalize.js';
+export { Graph } from './graph/graph.js';
+export type { ChannelArc } from './graph/graph.js';
+export { layoutGraph } from './layout/index.js';
+export type { LayoutAlgorithm, LayoutOptions } from './layout/index.js';
