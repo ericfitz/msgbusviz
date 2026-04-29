@@ -30,16 +30,11 @@ function buildServer(color: string): THREE.Object3D {
 function buildClient(color: string): THREE.Object3D {
   const root = new THREE.Group();
   const screen = new THREE.Mesh(
-    new THREE.BoxGeometry(1, 0.7, 0.05),
+    new THREE.BoxGeometry(1, 0.7, 0.1),
     new THREE.MeshLambertMaterial({ color }),
   );
-  screen.position.y = 0.4;
-  const base = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.18, 0.18, 0.05, 16),
-    new THREE.MeshLambertMaterial({ color }),
-  );
-  base.position.y = 0;
-  root.add(screen); root.add(base);
+  screen.position.y = 0;
+  root.add(screen);
   return root;
 }
 

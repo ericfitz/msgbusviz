@@ -24,7 +24,7 @@ export function createOrbitControls(camera: THREE.PerspectiveCamera, dom: HTMLEl
     const fovH = 2 * Math.atan(Math.tan(fovV / 2) * camera.aspect);
     const distV = radius / Math.sin(fovV / 2);
     const distH = radius / Math.sin(fovH / 2);
-    const distance = Math.max(distV, distH) * 1.15;
+    const distance = Math.max(distV, distH) * 1.35;
     const dir = new THREE.Vector3(0, 0.5, 1).normalize();
     camera.position.copy(center.clone().add(dir.multiplyScalar(distance)));
     controls.target.copy(center);
