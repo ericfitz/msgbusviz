@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -18,20 +19,32 @@ function findBundleDir(): string | null {
 
 let cachedHtml: string | null = null;
 let cachedJs: string | null = null;
+let cachedJsHash: string | null = null;
 
 const STUB_HTML = `<!doctype html><html><body><h1>viewer not built</h1></body></html>`;
 const STUB_JS = `console.warn('viewer bundle missing');`;
 
-export function loadViewerHtml(): string {
-  if (cachedHtml !== null) return cachedHtml;
+function ensureLoaded(): void {
+  if (cachedJs !== null) return;
   const dir = findBundleDir();
-  cachedHtml = dir ? fs.readFileSync(path.join(dir, 'index.html'), 'utf8') : STUB_HTML;
-  return cachedHtml;
+  if (dir) {
+    cachedJs = fs.readFileSync(path.join(dir, 'viewer.js'), 'utf8');
+    cachedJsHash = crypto.createHash('sha1').update(cachedJs).digest('hex').slice(0, 10);
+    const rawHtml = fs.readFileSync(path.join(dir, 'index.html'), 'utf8');
+    cachedHtml = rawHtml.replace(/(\/viewer\.js)(?!\?)/g, `$1?v=${cachedJsHash}`);
+  } else {
+    cachedJs = STUB_JS;
+    cachedHtml = STUB_HTML;
+    cachedJsHash = '';
+  }
+}
+
+export function loadViewerHtml(): string {
+  ensureLoaded();
+  return cachedHtml ?? STUB_HTML;
 }
 
 export function loadViewerJs(): string {
-  if (cachedJs !== null) return cachedJs;
-  const dir = findBundleDir();
-  cachedJs = dir ? fs.readFileSync(path.join(dir, 'viewer.js'), 'utf8') : STUB_JS;
-  return cachedJs;
+  ensureLoaded();
+  return cachedJs ?? STUB_JS;
 }
