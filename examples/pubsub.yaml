@@ -1,0 +1,13 @@
+version: 1
+layout: { mode: force, seed: 7 }
+nodes:
+  OrderService:    { model: server,   color: "#88aaff" }
+  InventoryService: { model: database, color: "#88cc88" }
+  BillingService:   { model: server,   color: "#ddbb55" }
+  AuditLog:         { model: cylinder, color: "#888888" }
+channels:
+  orderEvents:
+    publishers: [OrderService]
+    subscribers: [InventoryService, BillingService, AuditLog]
+    color: "#33aa88"
+    speed: 700

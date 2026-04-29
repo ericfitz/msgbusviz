@@ -1,0 +1,24 @@
+version: 1
+layout: { mode: grid, spacing: 4 }
+nodes:
+  Browser:    { model: client }
+  CDN:        { model: cloud }
+  Gateway:    { model: server }
+  AuthSvc:    { model: server }
+  ProductSvc: { model: server }
+  OrderSvc:   { model: server }
+  Cache:      { model: cylinder }
+  ProductDb:  { model: database }
+  OrderDb:    { model: database }
+  EventBus:   { model: queue }
+channels:
+  pageLoad:    { publishers: [Browser], subscribers: [CDN], color: "#88aaff" }
+  apiCall:     { publishers: [Browser], subscribers: [Gateway], color: "#88aaff" }
+  authCheck:   { publishers: [Gateway], subscribers: [AuthSvc], color: "#bbbb44" }
+  productList: { publishers: [Gateway], subscribers: [ProductSvc], color: "#44aabb" }
+  orderCreate: { publishers: [Gateway], subscribers: [OrderSvc], color: "#aa44aa" }
+  productCache: { publishers: [ProductSvc], subscribers: [Cache], color: "#44aabb" }
+  productLoad: { publishers: [ProductSvc], subscribers: [ProductDb], color: "#44aabb" }
+  orderWrite:  { publishers: [OrderSvc], subscribers: [OrderDb], color: "#aa44aa" }
+  orderEvent:  { publishers: [OrderSvc], subscribers: [EventBus], color: "#aa44aa" }
+  invConsume:  { publishers: [EventBus], subscribers: [ProductSvc], color: "#444444" }

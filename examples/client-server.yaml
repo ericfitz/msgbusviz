@@ -1,0 +1,25 @@
+version: 1
+layout: { mode: manual }
+camera:
+  position: [0, 4, 10]
+  lookAt: [0, 0, 0]
+nodes:
+  Client:
+    model: client
+    position: [-4, 0, 0]
+    color: "#4488ff"
+  Server:
+    model: server
+    position: [4, 0, 0]
+    color: "#88aa44"
+channels:
+  webRequest:
+    publishers: [Client]
+    subscribers: [Server]
+    color: "#00cc00"
+    speed: 600
+  webResponse:
+    publishers: [Server]
+    subscribers: [Client]
+    color: "#cc0000"
+    speed: 400
