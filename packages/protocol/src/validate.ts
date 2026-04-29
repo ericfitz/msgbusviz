@@ -1,10 +1,10 @@
-import Ajv, { type ValidateFunction } from 'ajv';
+import Ajv2020, { type ValidateFunction } from 'ajv/dist/2020.js';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const schema = require('../schema/protocol.schema.json') as object;
 
-const ajv = new Ajv({ allErrors: true, strict: false });
+const ajv = new Ajv2020({ allErrors: true, strict: false });
 const validateFn: ValidateFunction = ajv.compile(schema);
 
 export interface ValidationResult {

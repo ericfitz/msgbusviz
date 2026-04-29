@@ -2,7 +2,9 @@
   "name": "msgbusviz",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "workspaces": [
     "packages/protocol",
     "packages/core",
