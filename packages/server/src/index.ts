@@ -1,1 +1,2 @@
-export const SERVER_VERSION = '0.1.0' as const;
+export { startServer } from './server.js';
+export type { StartOptions, RunningServer } from './server.js';
