@@ -26,13 +26,15 @@ export class Hub {
   private channelPatches = new Map<string, ChannelPatch>();
   private idCounter = 0;
   private editEnabled: boolean;
+  private onSaveConfig?: (config: unknown) => void;
 
   constructor(
     private config: NormalizedConfig,
     private logger: HubLogger,
-    options: { editEnabled?: boolean } = {},
+    options: { editEnabled?: boolean; onSaveConfig?: (config: unknown) => void } = {},
   ) {
     this.editEnabled = options.editEnabled ?? false;
+    this.onSaveConfig = options.onSaveConfig;
   }
 
   setConfig(config: NormalizedConfig): void {
@@ -141,15 +143,24 @@ export class Hub {
 
   private handleSaveConfig(
     conn: ConnectionLike,
-    _msg: Extract<ClientToServerMessage, { type: 'saveConfig' }>,
+    msg: Extract<ClientToServerMessage, { type: 'saveConfig' }>,
   ): void {
     if (!this.editEnabled) {
+      conn.send({ type: 'error', code: 'edit_disabled', message: 'server not started with --edit' });
+      return;
+    }
+    if (!this.onSaveConfig) {
+      conn.send({ type: 'error', code: 'save_failed', message: 'no save handler configured' });
+      return;
+    }
+    try {
+      this.onSaveConfig(msg.config);
+    } catch (err) {
       conn.send({
         type: 'error',
-        code: 'edit_disabled',
-        message: 'server not started with --edit',
+        code: 'save_failed',
+        message: `save failed: ${(err as Error).message}`,
       });
-      return;
     }
   }
 

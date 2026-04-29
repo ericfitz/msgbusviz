@@ -141,3 +141,33 @@ channels:
     expect(conn.sent.filter((m) => m.type === 'messageSent')).toHaveLength(0);
   });
 });
+
+describe('Hub save', () => {
+  it('invokes onSaveConfig when edit enabled', () => {
+    let captured: unknown = null;
+    const hub = new Hub(loadConfig(baseYaml), silentLogger, {
+      editEnabled: true,
+      onSaveConfig: (c) => { captured = c; },
+    });
+    const conn = new FakeConn('c1');
+    hub.attach(conn);
+    conn.sent = [];
+    const newCfg = { version: 1, layout: { mode: 'manual' }, nodes: {}, channels: {} };
+    hub.handle('c1', { type: 'saveConfig', config: newCfg });
+    expect(captured).toEqual(newCfg);
+    expect(conn.sent.find((m) => m.type === 'error')).toBeUndefined();
+  });
+
+  it('returns save_failed when handler throws', () => {
+    const hub = new Hub(loadConfig(baseYaml), silentLogger, {
+      editEnabled: true,
+      onSaveConfig: () => { throw new Error('disk full'); },
+    });
+    const conn = new FakeConn('c1');
+    hub.attach(conn);
+    conn.sent = [];
+    hub.handle('c1', { type: 'saveConfig', config: {} });
+    const err = conn.sent.find((m) => m.type === 'error');
+    expect(err && err.type === 'error' && err.code).toBe('save_failed');
+  });
+});
