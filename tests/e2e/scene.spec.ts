@@ -20,11 +20,12 @@ test('viewer renders nodes/arcs and animates a message', async ({ page }) => {
       if (msg.type() === 'error') console.log('CONSOLE ERROR:', msg.text());
     });
     await page.goto(`${f.server.url}/`);
-    await page.waitForFunction(() => Boolean((window as any).viewer));
+    await page.waitForFunction(() => Boolean((window as Window & { viewer?: unknown }).viewer));
 
+    type W = Window & { __viewerInternals?: { scene: { children: unknown[] }; edges: { root: { children: { isLine?: boolean }[] } }; animator: { activeCount(): number } } };
     await page.waitForFunction(
       () => {
-        const internals = (window as any).__viewerInternals;
+        const internals = (window as W).__viewerInternals;
         if (!internals) return false;
         const scene = internals.scene;
         return Boolean(scene && scene.children && scene.children.length > 0);
@@ -33,8 +34,8 @@ test('viewer renders nodes/arcs and animates a message', async ({ page }) => {
     );
 
     const arcCount = await page.evaluate(() => {
-      const e = (window as any).__viewerInternals.edges;
-      return e.root.children.filter((c: any) => c.isLine).length;
+      const e = (window as W).__viewerInternals!.edges;
+      return e.root.children.filter((c) => c.isLine).length;
     });
     expect(arcCount).toBeGreaterThanOrEqual(1);
 
@@ -50,7 +51,7 @@ test('viewer renders nodes/arcs and animates a message', async ({ page }) => {
       let peak = 0;
       const start = performance.now();
       while (performance.now() - start < 300) {
-        const ac = (window as any).__viewerInternals.animator.activeCount() ?? 0;
+        const ac = (window as W).__viewerInternals!.animator.activeCount() ?? 0;
         if (ac > peak) peak = ac;
         await new Promise((r) => setTimeout(r, 16));
       }

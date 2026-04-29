@@ -14,12 +14,13 @@ test('L key toggles label visibility', async ({ page }) => {
   const f = await startE2EServer(yaml);
   try {
     await page.goto(`${f.server.url}/`);
-    await page.waitForFunction(() => Boolean((window as any).viewer));
+    await page.waitForFunction(() => Boolean((window as Window & { viewer?: unknown }).viewer));
 
     const before = await page.evaluate(() => {
-      const scene = (window as any).__viewerInternals.scene;
+      type W = Window & { __viewerInternals?: { scene: { traverse(cb: (o: { isSprite?: boolean; visible?: boolean }) => void): void } } };
+      const scene = (window as W).__viewerInternals!.scene;
       let visible = 0;
-      scene.traverse((o: any) => { if (o.isSprite && o.visible) visible++; });
+      scene.traverse((o) => { if (o.isSprite && o.visible) visible++; });
       return visible;
     });
     expect(before).toBeGreaterThan(0);
@@ -27,9 +28,10 @@ test('L key toggles label visibility', async ({ page }) => {
     await page.keyboard.press('l');
 
     const after = await page.evaluate(() => {
-      const scene = (window as any).__viewerInternals.scene;
+      type W = Window & { __viewerInternals?: { scene: { traverse(cb: (o: { isSprite?: boolean; visible?: boolean }) => void): void } } };
+      const scene = (window as W).__viewerInternals!.scene;
       let visible = 0;
-      scene.traverse((o: any) => { if (o.isSprite && o.visible) visible++; });
+      scene.traverse((o) => { if (o.isSprite && o.visible) visible++; });
       return visible;
     });
     expect(after).toBe(0);
