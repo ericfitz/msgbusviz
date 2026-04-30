@@ -16,12 +16,13 @@ if (!cfgRes.ok) {
   process.exit(1);
 }
 const cfg = await cfgRes.json();
-const channels = Object.keys(cfg.channels ?? {});
-if (channels.length === 0) {
+const channels = cfg.channels ?? {};
+const channelKeys = Object.keys(channels);
+if (channelKeys.length === 0) {
   console.error('no channels in config; nothing to send');
   process.exit(1);
 }
-console.log(`discovered ${channels.length} channels:`, channels.join(', '));
+console.log(`discovered ${channelKeys.length} channels:`, channelKeys.join(', '));
 
 const ws = new WebSocket(wsUrl);
 await new Promise((resolve, reject) => {
@@ -35,8 +36,17 @@ const labels = ['user-42', 'order-101', 'sku-7', 'session-abc', 'job-99', 'tx-20
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
 function fire() {
-  const channel = pick(channels);
-  const payload = { type: 'sendMessage', channel };
+  const channelKey = pick(channelKeys);
+  const ch = channels[channelKey];
+  const pubs = ch.publishers ?? [];
+  const subs = ch.subscribers ?? [];
+  if (pubs.length === 0 || subs.length === 0) return;
+  const from = pick(pubs);
+  const payload = { type: 'sendMessage', channel: channelKey, from };
+  if (subs.includes(from)) {
+    const others = subs.filter((n) => n !== from);
+    payload.to = others.length > 0 ? pick(others) : from;
+  }
   if (Math.random() < 0.4) payload.label = pick(labels);
   ws.send(JSON.stringify(payload));
 }
