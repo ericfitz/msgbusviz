@@ -46,6 +46,7 @@ export class NodeManager {
         continue;
       }
       const view = await this.createView(key, node, pos);
+      view.group.userData.nodeName = key;
       this.views.set(key, view);
       this.root.add(view.group);
     }
