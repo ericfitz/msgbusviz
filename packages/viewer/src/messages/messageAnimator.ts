@@ -42,7 +42,7 @@ export class MessageAnimator {
     if (!channel) return;
 
     const poolKey = `${msg.channel}::${channel.messageModel}`;
-    const baseColor = jitterRgb(msg.color, 16);
+    const baseColor = jitterRgb(msg.color, 0);
     const mesh = this.pool.acquire(
       poolKey,
       () => {
@@ -95,7 +95,7 @@ export class MessageAnimator {
       const p = curve.getPoint(eased);
       const speedShape = 4 * t * (1 - t);
       const size = Math.max(0.1, config.channels[am.channel]?.size ?? 1);
-      const wanderMag = 0.15 * speedShape / size;
+      const wanderMag = 0 * speedShape / size;
       const wx = (Math.random() - 0.5) * 2 * wanderMag;
       const wy = (Math.random() - 0.5) * 2 * wanderMag;
       const wz = (Math.random() - 0.5) * 2 * wanderMag;
