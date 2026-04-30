@@ -8,6 +8,9 @@
     #viz { width: 100vw; height: 100vh; }
     #toolbar { position: fixed; top: 8px; right: 8px; background: rgba(20,20,20,0.7); border-radius: 4px; padding: 6px 10px; font-size: 12px; }
     #toolbar button { margin-left: 4px; background: #2a2a2a; color: #e0e0e0; border: 1px solid #444; padding: 4px 8px; border-radius: 3px; cursor: pointer; }
+    #edit-pill { margin-left: 8px; padding: 2px 6px; background: #c64; color: #fff; border-radius: 3px; font-size: 11px; font-weight: bold; }
+    #btn-save[data-dirty="true"]::before { content: "● "; color: #ffaa44; }
+    #status { margin-left: 8px; color: #ff8888; font-size: 11px; }
   </style>
 </head>
 <body>
@@ -16,6 +19,8 @@
     <button id="btn-reset">Reset</button>
     <button id="btn-fit">Fit</button>
     <button id="btn-labels">Labels (L)</button>
+    <button id="btn-save" hidden>Save</button>
+    <span id="edit-pill" hidden>EDIT</span>
     <span id="status"></span>
   </div>
   <script type="module" src="/src/main.ts"></script>
