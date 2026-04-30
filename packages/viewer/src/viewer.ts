@@ -16,6 +16,7 @@ import { MessageAnimator } from './messages/messageAnimator.js';
 import { ViewerWs } from './ws/viewerWs.js';
 import { serializeRawConfig, type CameraSnapshot } from './serializeRawConfig.js';
 import { DragController } from './controls/dragNodes.js';
+import { ColorEditor } from './controls/colorEditor.js';
 
 export interface ViewerOptions {
   container: HTMLElement;
@@ -41,6 +42,7 @@ export class Viewer {
   private userHasOrbited = false;
   private readyPromise: Promise<void>;
   private dragController: DragController | null = null;
+  private colorEditor: ColorEditor | null = null;
   private dirty = false;
   private dirtyListeners: ((dirty: boolean) => void)[] = [];
   private saveErrorListeners: ((msg: string) => void)[] = [];
@@ -128,6 +130,8 @@ export class Viewer {
     this.loop?.stop();
     this.dragController?.setEnabled(false);
     this.dragController = null;
+    this.colorEditor?.dispose();
+    this.colorEditor = null;
     this.ws?.close();
     this.orbit?.dispose();
     this.sceneRoot?.dispose();
@@ -268,6 +272,25 @@ export class Viewer {
         },
       );
       this.dragController.setEnabled(true);
+      this.colorEditor = new ColorEditor(
+        this.sceneRoot.camera,
+        this.sceneRoot.renderer.domElement,
+        this.nodes.getRoot(),
+        {
+          onPreview: (name, hex) => {
+            this.nodes.applyColor(name, hex);
+          },
+          onCommit: (name, hex) => {
+            this.nodes.applyColor(name, hex);
+            const node = this.current.nodes[name];
+            if (node) (node as unknown as { color: string }).color = hex;
+            this.markDirty();
+          },
+          getCurrentHex: (name) => this.nodes.getCurrentHex(name),
+          isDragging: () => this.dragController?.isDragging() ?? false,
+        },
+      );
+      this.colorEditor.setEnabled(true);
     }
   }
 

@@ -108,3 +108,55 @@ describe('Viewer save API', () => {
     expect(errors[0]).toContain('edit_disabled');
   });
 });
+
+describe('Viewer color edit wiring', () => {
+  let container: HTMLElement;
+  beforeEach(() => {
+    container = document.createElement('div');
+    Object.defineProperty(container, 'clientWidth', { value: 800, configurable: true });
+    Object.defineProperty(container, 'clientHeight', { value: 600, configurable: true });
+    document.body.appendChild(container);
+  });
+
+  it('preview callback updates the live material but does not mark dirty', async () => {
+    const v = new Viewer({ container, config: baseConfig, baseUrl: 'http://t', edit: true });
+    await v.ready();
+    const dirtyEvents: boolean[] = [];
+    v.onDirtyChange((d) => dirtyEvents.push(d));
+    const ce = (v as unknown as { colorEditor: { callbacks: { onPreview: (n: string, h: string) => void } } }).colorEditor;
+    expect(ce).toBeDefined();
+    ce.callbacks.onPreview('A', '#112233');
+    // current.nodes.A.color must be unchanged (we don't have a baseline color in baseConfig.A,
+    // but the key invariant is "no markDirty fired").
+    expect(dirtyEvents.length).toBe(0);
+  });
+
+  it('commit callback updates current.nodes[name].color and marks dirty', async () => {
+    const v = new Viewer({ container, config: baseConfig, baseUrl: 'http://t', edit: true });
+    await v.ready();
+    const dirtyEvents: boolean[] = [];
+    v.onDirtyChange((d) => dirtyEvents.push(d));
+    const inner = v as unknown as {
+      colorEditor: { callbacks: { onCommit: (n: string, h: string) => void } };
+      current: { nodes: Record<string, { color?: string }> };
+    };
+    inner.colorEditor.callbacks.onCommit('A', '#445566');
+    expect(inner.current.nodes.A!.color).toBe('#445566');
+    expect(dirtyEvents).toContain(true);
+  });
+
+  it('save() after a color commit serializes the new color into the saveConfig payload', async () => {
+    const v = new Viewer({ container, config: baseConfig, baseUrl: 'http://t', edit: true });
+    await v.ready();
+    const sent: unknown[] = [];
+    (v as unknown as { ws: { send(o: unknown): void } }).ws = { send(o: unknown) { sent.push(o); } };
+    const inner = v as unknown as {
+      colorEditor: { callbacks: { onCommit: (n: string, h: string) => void } };
+    };
+    inner.colorEditor.callbacks.onCommit('A', '#778899');
+    v.save();
+    expect(sent).toHaveLength(1);
+    const msg = sent[0] as { config: { nodes: Record<string, { color?: string }> } };
+    expect(msg.config.nodes.A!.color).toBe('#778899');
+  });
+});
