@@ -52,11 +52,19 @@ export class Viewer {
   ready(): Promise<void> { return this.readyPromise; }
 
   save(): void {
-    if (!this.ws) return;
+    if (!this.ws) {
+      this.handleSaveError('viewer not connected');
+      return;
+    }
     const camera = this.userHasOrbited ? this.captureCamera() : undefined;
     const raw = serializeRawConfig(this.current, this.positions, camera);
     this.ws.send({ type: 'saveConfig', config: raw });
     if (this.saveSuccessTimer) clearTimeout(this.saveSuccessTimer);
+    // v1 limitation: we don't get an explicit ack from the server's saveConfig handler.
+    // Treat 1.5s of silence (no error frame) as success. A future revision could
+    // listen for the configUpdated rebroadcast (issued after the file watcher sees
+    // our write) as a real ack, with the timer downgraded to a long-tail failure
+    // fallback.
     this.saveSuccessTimer = setTimeout(() => this.handleSaveSuccess(), 1500);
   }
 
@@ -67,21 +75,29 @@ export class Viewer {
   private markDirty(): void {
     if (this.dirty) return;
     this.dirty = true;
-    for (const fn of this.dirtyListeners) fn(true);
+    for (const fn of this.dirtyListeners) {
+      try { fn(true); } catch (e) { console.error('[viewer] dirty listener threw', e); }
+    }
   }
 
   private handleSaveSuccess(): void {
     if (this.saveSuccessTimer) { clearTimeout(this.saveSuccessTimer); this.saveSuccessTimer = null; }
     if (this.dirty) {
       this.dirty = false;
-      for (const fn of this.dirtyListeners) fn(false);
+      for (const fn of this.dirtyListeners) {
+        try { fn(false); } catch (e) { console.error('[viewer] dirty listener threw', e); }
+      }
     }
-    for (const fn of this.saveSuccessListeners) fn();
+    for (const fn of this.saveSuccessListeners) {
+      try { fn(); } catch (e) { console.error('[viewer] save-success listener threw', e); }
+    }
   }
 
   private handleSaveError(msg: string): void {
     if (this.saveSuccessTimer) { clearTimeout(this.saveSuccessTimer); this.saveSuccessTimer = null; }
-    for (const fn of this.saveErrorListeners) fn(msg);
+    for (const fn of this.saveErrorListeners) {
+      try { fn(msg); } catch (e) { console.error('[viewer] save-error listener threw', e); }
+    }
   }
 
   private captureCamera(): CameraSnapshot {
@@ -106,6 +122,7 @@ export class Viewer {
   resetView(): void { this.orbit.reset(); }
 
   dispose(): void {
+    if (this.saveSuccessTimer) { clearTimeout(this.saveSuccessTimer); this.saveSuccessTimer = null; }
     this.loop?.stop();
     this.ws?.close();
     this.orbit?.dispose();
@@ -211,7 +228,9 @@ export class Viewer {
           this.edges.sync(this.current, this.graph.arcs, this.positions);
         },
         onError: (msg) => {
-          if (this.saveSuccessTimer) { this.handleSaveError(msg); return; }
+          const isSaveErr = this.saveSuccessTimer !== null
+            && (msg.startsWith('edit_disabled:') || msg.startsWith('save_failed:'));
+          if (isSaveErr) { this.handleSaveError(msg); return; }
           console.warn('[viewer ws]', msg);
         },
       });
