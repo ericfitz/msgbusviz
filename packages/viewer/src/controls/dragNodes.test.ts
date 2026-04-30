@@ -25,6 +25,29 @@ describe('projectToDragPlane', () => {
     expect(right.x).toBeGreaterThan(0);
     expect(right.z).toBeCloseTo(0, 5);
   });
+
+  it('respects camera orientation when off-axis (orbited camera)', () => {
+    const cam = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
+    cam.position.set(7, 5, 10);
+    cam.lookAt(0, 0, 0);
+    cam.updateMatrixWorld(true);
+
+    const startPoint = new THREE.Vector3(0, 0, 0);
+    const camForward = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion);
+    const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(camForward, startPoint);
+
+    // NDC center hits the start point exactly.
+    const center = projectToDragPlane(new THREE.Vector2(0, 0), cam, plane)!;
+    expect(center.distanceTo(startPoint)).toBeLessThan(1e-4);
+
+    // NDC right pulls the projected point along the camera's local-right axis.
+    const camRight = new THREE.Vector3(1, 0, 0).applyQuaternion(cam.quaternion);
+    const right = projectToDragPlane(new THREE.Vector2(0.5, 0), cam, plane)!;
+    const delta = right.clone().sub(startPoint);
+    // Mostly along camera-right, ~zero along camera-forward.
+    expect(Math.abs(delta.dot(camRight))).toBeGreaterThan(0.1);
+    expect(Math.abs(delta.dot(camForward))).toBeLessThan(1e-4);
+  });
 });
 
 describe('resolveNodeName', () => {
