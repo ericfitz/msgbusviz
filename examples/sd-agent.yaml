@@ -6,110 +6,110 @@ nodes:
     model: client
     label: OpsAgent
     scale: 1
-    color: '#888888'
+    color: '#fa7900'
     position:
-      - -0.5
+      - -0
       - 6.5
       - -1
   Coordinator:
     model: server
     label: Coordinator
     scale: 1
-    color: '#888888'
+    color: '#ff0000'
     position:
-      - -0.5
-      - 3.5
-      - 0.5
+      - 0
+      - 4
+      - 1.5
   FitnessAgent:
     model: server
     label: FitnessAgent
     scale: 1
-    color: '#888888'
+    color: '#ffff00'
     position:
       - -1.5
-      - -2
-      - 3
+      - -1.5
+      - 4
   SecurityAgent:
     model: server
     label: SecurityAgent
     scale: 1
-    color: '#888888'
+    color: '#ffff00'
     position:
-      - 5.
-      - -2.5
-      - 2.5
+      - 5
+      - -1.5
+      - 4
   SafetyAgent:
     model: server
     label: SafetyAgent
     scale: 1
-    color: '#888888'
+    color: '#ffff00'
     position:
       - 3
-      - -3.5
-      - 1.5
+      - -1.5
+      - 4
   HITLAgent:
     model: server
     label: HITLAgent
     scale: 1
-    color: '#888888'
+    color: '#ffff00'
     position:
       - 0.5
-      - -2.5
+      - -1.5
       - 4
   Escalator:
     model: server
     label: Escalator
     scale: 1
-    color: '#888888'
+    color: '#ff8ff0'
     position:
       - 5
-      - 2.5
-      - -1.5
+      - 4
+      - 1.5
   SpeedDialDeployer:
     model: server
     label: SpeedDialDeployer
     scale: 1
-    color: '#888888'
+    color: '#995900'
     position:
       - -10
-      - 2.5
-      - 0.5
+      - 4
+      - 1.5
   SpeedDialHost:
     model: server
     label: SpeedDialHost
     scale: 1
-    color: '#888888'
+    color: '#b602f7'
     position:
-      - -6.5
-      - 6.8
-      - 0.0
+      - -6
+      - 6.5
+      - -1
   Host:
     model: server
     label: Host
     scale: 1
-    color: '#888888'
+    color: '#00a0ff'
     position:
       - -10
       - 6.5
-      - -0.5
+      - -1
   SourceRepo:
     model: server
     label: SourceRepo
     scale: 1
-    color: '#888888'
+    color: '#00ff00'
     position:
-      - -5
-      - 2
-      - 3.5
+      - -6
+      - 4
+      - 1.5
   AgentBus:
     model: queue
     label: AgentBus
     scale: 1
-    color: '#888888'
+    color: '#00e1ff'
     position:
       - 5
-      - 6.5
-      - -3.5
+      - 7
+      - -1
 channels:
   toolCallRequest:
     publishers:
@@ -228,10 +228,10 @@ channels:
     arcHeight: 1.5
 camera:
   position:
-    - 0.06815980733263005
-    - 9.741219307873994
-    - 16.14653273644013
+    - -3.224157459190632
+    - 4.981152843789123
+    - 18.141178108381702
   lookAt:
-    - 0.05305668147701528
-    - 1.334359638409663
-    - -0.6671798192048315
+    - -2.089866585070277
+    - 2.9000096630247243
+    - 1.373421870677141
