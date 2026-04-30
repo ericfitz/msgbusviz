@@ -28,6 +28,7 @@ export interface DragCallbacks {
   onDragEnd?: (name: string, moved: boolean) => void;
 }
 
+// World units (post-camera-aligned-plane projection), not pixels.
 const MOVE_EPSILON = 1e-3;
 
 export class DragController {
@@ -36,6 +37,7 @@ export class DragController {
   private dragPlane: THREE.Plane | null = null;
   private dragStart: THREE.Vector3 | null = null;
   private movedPastEpsilon = false;
+  private dragPointerId: number | null = null;
   private enabled = false;
 
   constructor(
@@ -62,6 +64,11 @@ export class DragController {
       this.domElement.removeEventListener('pointerdown', this.onPointerDown);
       this.domElement.removeEventListener('pointerup', this.onPointerUp);
       this.domElement.removeEventListener('pointercancel', this.onPointerUp);
+      if (this.dragPointerId !== null && this.domElement.hasPointerCapture(this.dragPointerId)) {
+        this.domElement.releasePointerCapture(this.dragPointerId);
+      }
+      this.domElement.style.cursor = '';
+      this.hoveredName = null;
       this.clearDrag();
     }
   }
@@ -89,6 +96,7 @@ export class DragController {
   private onPointerMove(ev: PointerEvent): void {
     const ndc = this.toNdc(ev);
     if (this.dragName && this.dragPlane && this.dragStart) {
+      if (this.dragPointerId !== null && ev.pointerId !== this.dragPointerId) return;
       const p = projectToDragPlane(ndc, this.camera, this.dragPlane);
       if (!p) return;
       if (!this.movedPastEpsilon && p.distanceTo(this.dragStart) > MOVE_EPSILON) {
@@ -114,6 +122,7 @@ export class DragController {
     if (!hit) return;
     ev.stopPropagation();
     this.domElement.setPointerCapture(ev.pointerId);
+    this.dragPointerId = ev.pointerId;
     this.domElement.style.cursor = 'grabbing';
     this.dragName = hit.name;
     this.dragStart = hit.point.clone();
@@ -125,6 +134,7 @@ export class DragController {
 
   private onPointerUp(ev: PointerEvent): void {
     if (!this.dragName) return;
+    if (this.dragPointerId !== null && ev.pointerId !== this.dragPointerId) return;
     const name = this.dragName;
     const moved = this.movedPastEpsilon;
     if (this.domElement.hasPointerCapture(ev.pointerId)) {
@@ -140,5 +150,6 @@ export class DragController {
     this.dragPlane = null;
     this.dragStart = null;
     this.movedPastEpsilon = false;
+    this.dragPointerId = null;
   }
 }

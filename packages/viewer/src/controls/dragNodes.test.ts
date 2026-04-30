@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
-import { projectToDragPlane, resolveNodeName } from './dragNodes.js';
+import { DragController, projectToDragPlane, resolveNodeName } from './dragNodes.js';
 
 describe('projectToDragPlane', () => {
   it('projects pointer onto a plane perpendicular to camera through the start point', () => {
@@ -66,5 +66,50 @@ describe('resolveNodeName', () => {
   it('returns null if no ancestor has userData.nodeName', () => {
     const orphan = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshBasicMaterial());
     expect(resolveNodeName(orphan)).toBeNull();
+  });
+});
+
+describe('DragController setEnabled', () => {
+  it('attaches and removes listeners symmetrically; idempotent on duplicate state', () => {
+    const cam = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
+    cam.position.set(0, 0, 10);
+    const root = new THREE.Group();
+
+    const added: Array<{ type: string; fn: EventListenerOrEventListenerObject }> = [];
+    const removed: Array<{ type: string; fn: EventListenerOrEventListenerObject }> = [];
+    const fakeEl = {
+      addEventListener: (type: string, fn: EventListenerOrEventListenerObject) => { added.push({ type, fn }); },
+      removeEventListener: (type: string, fn: EventListenerOrEventListenerObject) => { removed.push({ type, fn }); },
+      getBoundingClientRect: () => ({ left: 0, top: 0, width: 100, height: 100, right: 100, bottom: 100, x: 0, y: 0, toJSON: () => ({}) } as DOMRect),
+      hasPointerCapture: () => false,
+      releasePointerCapture: () => {},
+      setPointerCapture: () => {},
+      style: { cursor: '' } as CSSStyleDeclaration,
+    } as unknown as HTMLElement;
+
+    const ctrl = new DragController(cam, fakeEl, root, {});
+
+    // Idempotent on no-op
+    ctrl.setEnabled(false);
+    expect(added.length).toBe(0);
+    expect(removed.length).toBe(0);
+
+    // Enable: 4 listeners attached.
+    ctrl.setEnabled(true);
+    expect(added.length).toBe(4);
+    expect(added.map((x) => x.type).sort()).toEqual(['pointercancel', 'pointerdown', 'pointermove', 'pointerup']);
+
+    // Idempotent re-enable: no extra listeners.
+    ctrl.setEnabled(true);
+    expect(added.length).toBe(4);
+
+    // Disable: each handler ref removed matches the one added.
+    ctrl.setEnabled(false);
+    expect(removed.length).toBe(4);
+    for (const r of removed) {
+      const matchingAdd = added.find((a) => a.type === r.type);
+      expect(matchingAdd).toBeDefined();
+      expect(matchingAdd!.fn).toBe(r.fn);
+    }
   });
 });
