@@ -57,6 +57,19 @@ export class NodeManager {
       this.highlightSaves.delete(key);
     }
   }
+  /** @internal Color-edit primitive; intended for ColorEditor. */
+  applyColor(key: string, hex: string): void {
+    const view = this.views.get(key);
+    if (!view) return;
+    view.group.traverse((c) => {
+      const m = c as THREE.Mesh;
+      if (!(m as { isMesh?: boolean }).isMesh || !m.material) return;
+      const mat = m.material as THREE.MeshLambertMaterial;
+      if (!mat.color) return;
+      mat.color.set(hex);
+    });
+  }
+
   toggleLabels(): void {
     this.labelsVisible = !this.labelsVisible;
     for (const v of this.views.values()) v.labelSprite.visible = this.labelsVisible;

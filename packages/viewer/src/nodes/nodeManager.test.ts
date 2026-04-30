@@ -77,4 +77,24 @@ describe('NodeManager', () => {
     const after = (meshes[0]!.material as THREE.MeshLambertMaterial).emissive.getHex();
     expect(after).toBe(before);
   });
+
+  it('applyColor sets material.color on every colored mesh in a node group', async () => {
+    const positions = new Map<string, [number, number, number]>([['A', [0, 0, 0]]]);
+    await nm.sync(config, positions);
+    nm.applyColor('A', '#ff0000');
+    const g = nm.getNodeGroup('A')!;
+    const meshes: THREE.Mesh[] = [];
+    g.traverse((c) => { if ((c as THREE.Mesh).isMesh) meshes.push(c as THREE.Mesh); });
+    expect(meshes.length).toBeGreaterThan(0);
+    for (const m of meshes) {
+      const mat = m.material as THREE.MeshLambertMaterial;
+      expect(mat.color.getHexString()).toBe('ff0000');
+    }
+  });
+
+  it('applyColor is a no-op for unknown keys', async () => {
+    const positions = new Map<string, [number, number, number]>([['A', [0, 0, 0]]]);
+    await nm.sync(config, positions);
+    expect(() => nm.applyColor('Ghost', '#00ff00')).not.toThrow();
+  });
 });
