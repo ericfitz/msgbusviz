@@ -137,6 +137,9 @@ export class ColorEditor {
       if (!this.selectedNodeName) return;
       const v = (e.target as HTMLInputElement).value;
       const name = this.selectedNodeName;
+      // Clear before the diff check so a stray re-fire is a guarded no-op.
+      // Linux/Windows native Cancel does not fire `change` at all (v1 quirk:
+      // live preview persists until reload).
       this.selectedNodeName = null;
       if (v !== this.originalHex) {
         this.callbacks.onCommit(name, v);

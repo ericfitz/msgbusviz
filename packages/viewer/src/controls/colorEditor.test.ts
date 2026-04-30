@@ -175,3 +175,48 @@ describe('ColorEditor color picker plumbing', () => {
     expect(callbacks.onCommit).toHaveBeenCalledWith('A', '#00ff00');
   });
 });
+
+describe('ColorEditor dismissal', () => {
+  it('Esc dismisses an open menu', () => {
+    const { domElement, parent } = setupCeWithRealDom();
+    fireContextMenu(domElement, 50, 50);
+    expect(parent.querySelector('.ce-menu')).not.toBeNull();
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    expect(parent.querySelector('.ce-menu')).toBeNull();
+  });
+
+  it('outside pointerdown dismisses an open menu', () => {
+    const { domElement, parent } = setupCeWithRealDom();
+    fireContextMenu(domElement, 50, 50);
+    expect(parent.querySelector('.ce-menu')).not.toBeNull();
+    // Simulate a pointerdown on the body (outside the menu).
+    // jsdom v24 supports PointerEvent; fall back to MouseEvent if it doesn't.
+    const PointerEventCtor: typeof PointerEvent | undefined =
+      typeof PointerEvent !== 'undefined' ? PointerEvent : undefined;
+    const pdev = PointerEventCtor
+      ? new PointerEventCtor('pointerdown', { bubbles: true, cancelable: true })
+      : new MouseEvent('pointerdown', { bubbles: true, cancelable: true });
+    document.body.dispatchEvent(pdev);
+    expect(parent.querySelector('.ce-menu')).toBeNull();
+  });
+
+  it('a second contextmenu dismisses the prior menu before opening a new one', () => {
+    const { domElement, parent } = setupCeWithRealDom();
+    fireContextMenu(domElement, 50, 50);
+    fireContextMenu(domElement, 50, 50);
+    // Should still only have one menu element (prior dismissed, new one opened).
+    expect(parent.querySelectorAll('.ce-menu').length).toBe(1);
+  });
+
+  it('setEnabled(false) removes the contextmenu listener and dismisses any open menu', () => {
+    const { ce, domElement, parent } = setupCeWithRealDom();
+    fireContextMenu(domElement, 50, 50);
+    expect(parent.querySelector('.ce-menu')).not.toBeNull();
+    ce.setEnabled(false);
+    expect(parent.querySelector('.ce-menu')).toBeNull();
+    // Subsequent contextmenu has no effect.
+    const ev = fireContextMenu(domElement, 50, 50);
+    expect(ev.defaultPrevented).toBe(false);
+    expect(parent.querySelector('.ce-menu')).toBeNull();
+  });
+});
