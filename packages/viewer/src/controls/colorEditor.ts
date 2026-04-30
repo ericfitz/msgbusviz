@@ -11,7 +11,7 @@ export interface ColorEditorCallbacks {
 
 type HitResult =
   | { kind: 'node'; name: string }
-  | { kind: 'background' }
+  | { kind: 'background' }   // reserved for future background-color feature; never returned in v1
   | { kind: 'none' };
 
 export class ColorEditor {
