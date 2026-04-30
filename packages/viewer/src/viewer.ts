@@ -14,6 +14,7 @@ import { NodeManager } from './nodes/nodeManager.js';
 import { EdgeManager } from './edges/edgeManager.js';
 import { MessageAnimator } from './messages/messageAnimator.js';
 import { ViewerWs } from './ws/viewerWs.js';
+import { serializeRawConfig, type CameraSnapshot } from './serializeRawConfig.js';
 
 export interface ViewerOptions {
   container: HTMLElement;
@@ -38,12 +39,59 @@ export class Viewer {
   private labelsVisible = true;
   private userHasOrbited = false;
   private readyPromise: Promise<void>;
+  private dirty = false;
+  private dirtyListeners: ((dirty: boolean) => void)[] = [];
+  private saveErrorListeners: ((msg: string) => void)[] = [];
+  private saveSuccessListeners: (() => void)[] = [];
+  private saveSuccessTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(private opts: ViewerOptions) {
     this.readyPromise = this.boot();
   }
 
   ready(): Promise<void> { return this.readyPromise; }
+
+  save(): void {
+    if (!this.ws) return;
+    const camera = this.userHasOrbited ? this.captureCamera() : undefined;
+    const raw = serializeRawConfig(this.current, this.positions, camera);
+    this.ws.send({ type: 'saveConfig', config: raw });
+    if (this.saveSuccessTimer) clearTimeout(this.saveSuccessTimer);
+    this.saveSuccessTimer = setTimeout(() => this.handleSaveSuccess(), 1500);
+  }
+
+  onDirtyChange(cb: (dirty: boolean) => void): void { this.dirtyListeners.push(cb); }
+  onSaveError(cb: (msg: string) => void): void { this.saveErrorListeners.push(cb); }
+  onSaveSuccess(cb: () => void): void { this.saveSuccessListeners.push(cb); }
+
+  private markDirty(): void {
+    if (this.dirty) return;
+    this.dirty = true;
+    for (const fn of this.dirtyListeners) fn(true);
+  }
+
+  private handleSaveSuccess(): void {
+    if (this.saveSuccessTimer) { clearTimeout(this.saveSuccessTimer); this.saveSuccessTimer = null; }
+    if (this.dirty) {
+      this.dirty = false;
+      for (const fn of this.dirtyListeners) fn(false);
+    }
+    for (const fn of this.saveSuccessListeners) fn();
+  }
+
+  private handleSaveError(msg: string): void {
+    if (this.saveSuccessTimer) { clearTimeout(this.saveSuccessTimer); this.saveSuccessTimer = null; }
+    for (const fn of this.saveErrorListeners) fn(msg);
+  }
+
+  private captureCamera(): CameraSnapshot {
+    const cam = this.sceneRoot.camera;
+    const tgt = this.orbit.controls.target;
+    return {
+      position: [cam.position.x, cam.position.y, cam.position.z],
+      lookAt: [tgt.x, tgt.y, tgt.z],
+    };
+  }
 
   toggleLabels(): void {
     this.labelsVisible = !this.labelsVisible;
@@ -162,7 +210,10 @@ export class Viewer {
           Object.assign(c, patch as Record<string, unknown>);
           this.edges.sync(this.current, this.graph.arcs, this.positions);
         },
-        onError: (msg) => { console.warn('[viewer ws]', msg); },
+        onError: (msg) => {
+          if (this.saveSuccessTimer) { this.handleSaveError(msg); return; }
+          console.warn('[viewer ws]', msg);
+        },
       });
       this.ws.start();
     }
