@@ -56,12 +56,12 @@ export class DragController {
     this.enabled = on;
     if (on) {
       this.domElement.addEventListener('pointermove', this.onPointerMove);
-      this.domElement.addEventListener('pointerdown', this.onPointerDown);
+      this.domElement.addEventListener('pointerdown', this.onPointerDown, { capture: true });
       this.domElement.addEventListener('pointerup', this.onPointerUp);
       this.domElement.addEventListener('pointercancel', this.onPointerUp);
     } else {
       this.domElement.removeEventListener('pointermove', this.onPointerMove);
-      this.domElement.removeEventListener('pointerdown', this.onPointerDown);
+      this.domElement.removeEventListener('pointerdown', this.onPointerDown, { capture: true });
       this.domElement.removeEventListener('pointerup', this.onPointerUp);
       this.domElement.removeEventListener('pointercancel', this.onPointerUp);
       if (this.dragPointerId !== null && this.domElement.hasPointerCapture(this.dragPointerId)) {
@@ -99,7 +99,8 @@ export class DragController {
       if (this.dragPointerId !== null && ev.pointerId !== this.dragPointerId) return;
       const p = projectToDragPlane(ndc, this.camera, this.dragPlane);
       if (!p) return;
-      if (!this.movedPastEpsilon && p.distanceTo(this.dragStart) > MOVE_EPSILON) {
+      if (!this.movedPastEpsilon) {
+        if (p.distanceTo(this.dragStart) <= MOVE_EPSILON) return;
         this.movedPastEpsilon = true;
       }
       this.callbacks.onDragMove?.(this.dragName, [p.x, p.y, p.z]);
@@ -121,6 +122,7 @@ export class DragController {
     const hit = this.hitTest(ndc);
     if (!hit) return;
     ev.stopPropagation();
+    ev.stopImmediatePropagation();
     this.domElement.setPointerCapture(ev.pointerId);
     this.dragPointerId = ev.pointerId;
     this.domElement.style.cursor = 'grabbing';
