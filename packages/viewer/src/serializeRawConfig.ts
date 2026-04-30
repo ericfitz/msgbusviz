@@ -13,16 +13,24 @@ export function serializeRawConfig(
   const nodes: Record<string, unknown> = {};
   for (const [name, node] of Object.entries(config.nodes)) {
     const pos = positions.get(name);
-    if (!pos) continue;
-    const { position: _ignored, ...rest } = node as unknown as Record<string, unknown> & { position?: unknown };
+    if (!pos) {
+      throw new Error(`serializeRawConfig: no position for node "${name}"`);
+    }
+    const { key: _key, position: _position, ...rest } = node;
     nodes[name] = { ...rest, position: pos };
+  }
+
+  const channels: Record<string, unknown> = {};
+  for (const [name, ch] of Object.entries(config.channels)) {
+    const { key: _key, ...rest } = ch;
+    channels[name] = rest;
   }
 
   return {
     version: 1,
     layout: { mode: 'manual' },
     nodes,
-    channels: config.channels,
+    channels,
     ...(camera ? { camera } : {}),
   };
 }

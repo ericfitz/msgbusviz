@@ -6,11 +6,11 @@ const cfg: NormalizedConfig = {
   version: 1,
   layout: { mode: 'force', spacing: 4 },
   nodes: {
-    A: { model: 'cube', scale: 1, position: undefined } as unknown as NormalizedConfig['nodes']['A'],
-    B: { model: 'sphere', scale: 1.5, label: 'beta', position: undefined } as unknown as NormalizedConfig['nodes']['B'],
+    A: { key: 'A', model: 'cube', scale: 1, position: undefined } as unknown as NormalizedConfig['nodes']['A'],
+    B: { key: 'B', model: 'sphere', scale: 1.5, label: 'beta', position: undefined } as unknown as NormalizedConfig['nodes']['B'],
   },
   channels: {
-    c1: { publishers: ['A'], subscribers: ['B'], color: '#aabbcc', speed: 1500, size: 1, messageModel: 'sphere' },
+    c1: { key: 'c1', publishers: ['A'], subscribers: ['B'], color: '#aabbcc', speed: 1500, size: 1, messageModel: 'sphere' },
   },
 } as unknown as NormalizedConfig;
 
@@ -36,9 +36,16 @@ describe('serializeRawConfig', () => {
     expect(raw.nodes.B!.scale).toBe(1.5);
   });
 
-  it('passes channels through verbatim', () => {
-    const raw = serializeRawConfig(cfg, positions) as { channels: Record<string, unknown> };
-    expect(raw.channels).toEqual(cfg.channels);
+  it('passes channel fields through (sans key)', () => {
+    const raw = serializeRawConfig(cfg, positions) as { channels: Record<string, Record<string, unknown>> };
+    const c1 = raw.channels.c1!;
+    expect(c1.publishers).toEqual(['A']);
+    expect(c1.subscribers).toEqual(['B']);
+    expect(c1.color).toBe('#aabbcc');
+    expect(c1.speed).toBe(1500);
+    expect(c1.size).toBe(1);
+    expect(c1.messageModel).toBe('sphere');
+    expect(c1).not.toHaveProperty('key');
   });
 
   it('omits camera block when not provided', () => {
@@ -57,5 +64,31 @@ describe('serializeRawConfig', () => {
   it('always emits version: 1', () => {
     const raw = serializeRawConfig(cfg, positions) as { version: number };
     expect(raw.version).toBe(1);
+  });
+
+  it('drops pre-existing position from a normalized node and uses the positions map value', () => {
+    const cfgWithPos: NormalizedConfig = {
+      ...cfg,
+      nodes: {
+        A: { key: 'A', model: 'cube', scale: 1, position: [99, 99, 99] } as unknown as NormalizedConfig['nodes']['A'],
+        B: { key: 'B', model: 'sphere', scale: 1.5, position: [88, 88, 88] } as unknown as NormalizedConfig['nodes']['B'],
+      },
+    };
+    const raw = serializeRawConfig(cfgWithPos, positions) as {
+      nodes: Record<string, { position: [number, number, number] }>;
+    };
+    expect(raw.nodes.A!.position).toEqual([1, 2, 3]);
+    expect(raw.nodes.B!.position).toEqual([4, 5, 6]);
+  });
+
+  it('throws if a node has no entry in the positions map', () => {
+    const incomplete = new Map<string, [number, number, number]>([['A', [1, 2, 3]]]);
+    expect(() => serializeRawConfig(cfg, incomplete)).toThrow(/no position for node "B"/);
+  });
+
+  it('strips the internal key field from each node', () => {
+    const raw = serializeRawConfig(cfg, positions) as { nodes: Record<string, Record<string, unknown>> };
+    expect(raw.nodes.A!).not.toHaveProperty('key');
+    expect(raw.nodes.B!).not.toHaveProperty('key');
   });
 });
