@@ -171,6 +171,9 @@ export class Viewer {
       this.orbit.controls.target.set(...this.current.camera.lookAt);
       this.orbit.controls.update();
       this.orbit.captureInitial();
+      // YAML already carries a camera; treat as orbited so save preserves it.
+      this.userHasOrbited = true;
+      this.orbit.controls.addEventListener('start', () => { this.userHasOrbited = true; });
     } else {
       const refit = (label: string) => {
         this.sceneRoot.resize();
