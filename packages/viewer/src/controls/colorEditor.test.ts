@@ -122,7 +122,7 @@ describe('ColorEditor color picker plumbing', () => {
   let clickSpy: ReturnType<typeof vi.fn>;
   beforeEach(() => {
     clickSpy = vi.fn();
-    HTMLInputElement.prototype.click = clickSpy;
+    HTMLInputElement.prototype.click = clickSpy as unknown as () => void;
   });
   afterEach(() => {
     HTMLInputElement.prototype.click = origClick;
