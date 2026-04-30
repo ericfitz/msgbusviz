@@ -97,4 +97,17 @@ describe('NodeManager', () => {
     await nm.sync(config, positions);
     expect(() => nm.applyColor('Ghost', '#00ff00')).not.toThrow();
   });
+
+  it('getCurrentHex returns the live material color as #rrggbb', async () => {
+    const positions = new Map<string, [number, number, number]>([['A', [0, 0, 0]]]);
+    await nm.sync(config, positions);
+    nm.applyColor('A', '#abcdef');
+    expect(nm.getCurrentHex('A')).toBe('#abcdef');
+  });
+
+  it('getCurrentHex returns a safe default for unknown keys', async () => {
+    const positions = new Map<string, [number, number, number]>([['A', [0, 0, 0]]]);
+    await nm.sync(config, positions);
+    expect(nm.getCurrentHex('Ghost')).toMatch(/^#[0-9a-f]{6}$/);
+  });
 });

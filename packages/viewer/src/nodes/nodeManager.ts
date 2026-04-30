@@ -57,6 +57,7 @@ export class NodeManager {
       this.highlightSaves.delete(key);
     }
   }
+
   /** @internal Color-edit primitive; intended for ColorEditor. */
   applyColor(key: string, hex: string): void {
     const view = this.views.get(key);
@@ -68,6 +69,24 @@ export class NodeManager {
       if (!mat.color) return;
       mat.color.set(hex);
     });
+  }
+
+  /** @internal Color-edit primitive; reads the live material color of a node. */
+  getCurrentHex(key: string): string {
+    const view = this.views.get(key);
+    if (!view) return '#888888';
+    let hex = '#888888';
+    let found = false;
+    view.group.traverse((c) => {
+      if (found) return;
+      const m = c as THREE.Mesh;
+      if (!(m as { isMesh?: boolean }).isMesh || !m.material) return;
+      const mat = m.material as THREE.MeshLambertMaterial;
+      if (!mat.color) return;
+      hex = '#' + mat.color.getHexString();
+      found = true;
+    });
+    return hex;
   }
 
   toggleLabels(): void {
