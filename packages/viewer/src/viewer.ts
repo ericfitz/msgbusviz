@@ -283,7 +283,7 @@ export class Viewer {
           onCommit: (name, hex) => {
             this.nodes.applyColor(name, hex);
             const node = this.current.nodes[name];
-            if (node) (node as unknown as { color: string }).color = hex;
+            if (node) node.color = hex;
             this.markDirty();
           },
           getCurrentHex: (name) => this.nodes.getCurrentHex(name),

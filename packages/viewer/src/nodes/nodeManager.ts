@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { NormalizedConfig, NormalizedNode, Vec3 } from '@msgbusviz/core';
+import type { HexColor, NormalizedConfig, NormalizedNode, Vec3 } from '@msgbusviz/core';
 import { resolveNodeModel } from './modelResolver.js';
 import { createLabelSprite } from './label.js';
 
@@ -72,10 +72,10 @@ export class NodeManager {
   }
 
   /** @internal Color-edit primitive; reads the live material color of a node. */
-  getCurrentHex(key: string): string {
+  getCurrentHex(key: string): HexColor {
     const view = this.views.get(key);
     if (!view) return '#888888';
-    let hex = '#888888';
+    let hex: HexColor = '#888888';
     let found = false;
     view.group.traverse((c) => {
       if (found) return;
@@ -83,7 +83,7 @@ export class NodeManager {
       if (!(m as { isMesh?: boolean }).isMesh || !m.material) return;
       const mat = m.material as THREE.MeshLambertMaterial;
       if (!mat.color) return;
-      hex = '#' + mat.color.getHexString();
+      hex = `#${mat.color.getHexString()}`;
       found = true;
     });
     return hex;

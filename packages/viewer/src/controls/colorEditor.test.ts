@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as THREE from 'three';
+import type { HexColor } from '@msgbusviz/core';
 import { ColorEditor } from './colorEditor.js';
 
 function makeFakeEl(): {
@@ -74,7 +75,7 @@ function setupCeWithRealDom() {
   const callbacks = {
     onPreview: vi.fn(),
     onCommit: vi.fn(),
-    getCurrentHex: vi.fn((_name: string) => '#abcdef'),
+    getCurrentHex: vi.fn((_name: string): HexColor => '#abcdef'),
     isDragging: vi.fn(() => false),
   };
   const ce = new ColorEditor(cam, domElement, root, callbacks);

@@ -1,10 +1,11 @@
 import * as THREE from 'three';
+import type { HexColor } from '@msgbusviz/core';
 import { resolveNodeName } from './dragNodes.js';
 
 export interface ColorEditorCallbacks {
-  onPreview: (name: string, hex: string) => void;
-  onCommit: (name: string, hex: string) => void;
-  getCurrentHex: (name: string) => string;
+  onPreview: (name: string, hex: HexColor) => void;
+  onCommit: (name: string, hex: HexColor) => void;
+  getCurrentHex: (name: string) => HexColor;
   isDragging?: () => boolean;
 }
 
@@ -18,7 +19,7 @@ export class ColorEditor {
   private menuEl: HTMLDivElement | null = null;
   private inputEl: HTMLInputElement | null = null;
   private selectedNodeName: string | null = null;
-  private originalHex = '#888888';
+  private originalHex: HexColor = '#888888';
   private windowPointerDownHandler: ((ev: PointerEvent) => void) | null = null;
   private windowKeydownHandler: ((ev: KeyboardEvent) => void) | null = null;
 
@@ -128,14 +129,16 @@ export class ColorEditor {
     input.style.left = '-9999px';
     input.style.opacity = '0';
     input.style.pointerEvents = 'none';
+    // <input type="color">.value is always '#rrggbb' per the HTML spec, so the
+    // cast to HexColor at the DOM boundary is sound.
     input.addEventListener('input', (e) => {
       if (!this.selectedNodeName) return;
-      const v = (e.target as HTMLInputElement).value;
+      const v = (e.target as HTMLInputElement).value as HexColor;
       this.callbacks.onPreview(this.selectedNodeName, v);
     });
     input.addEventListener('change', (e) => {
       if (!this.selectedNodeName) return;
-      const v = (e.target as HTMLInputElement).value;
+      const v = (e.target as HTMLInputElement).value as HexColor;
       const name = this.selectedNodeName;
       // Clear before the diff check so a stray re-fire is a guarded no-op.
       // Linux/Windows native Cancel does not fire `change` at all (v1 quirk:
