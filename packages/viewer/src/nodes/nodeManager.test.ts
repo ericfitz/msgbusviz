@@ -42,4 +42,18 @@ describe('NodeManager', () => {
     expect(root).toBeInstanceOf(THREE.Group);
     expect(root.children.length).toBeGreaterThan(0);
   });
+
+  it('applyPosition moves a single node group without re-syncing', async () => {
+    const positions = new Map<string, [number, number, number]>([['A', [0, 0, 0]]]);
+    await nm.sync(config, positions);
+    nm.applyPosition('A', [4, 5, -6]);
+    const g = nm.getNodeGroup('A')!;
+    expect([g.position.x, g.position.y, g.position.z]).toEqual([4, 5, -6]);
+  });
+
+  it('applyPosition is a no-op for unknown nodes', async () => {
+    const positions = new Map<string, [number, number, number]>([['A', [0, 0, 0]]]);
+    await nm.sync(config, positions);
+    expect(() => nm.applyPosition('Ghost', [1, 2, 3])).not.toThrow();
+  });
 });

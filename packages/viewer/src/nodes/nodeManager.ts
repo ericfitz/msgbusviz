@@ -20,6 +20,11 @@ export class NodeManager {
   detach(scene: THREE.Scene): void { scene.remove(this.root); }
   getRoot(): THREE.Group { return this.root; }
   getNodeGroup(key: string): THREE.Group | undefined { return this.views.get(key)?.group; }
+  applyPosition(key: string, p: [number, number, number]): void {
+    const view = this.views.get(key);
+    if (!view) return;
+    view.group.position.set(p[0], p[1], p[2]);
+  }
   toggleLabels(): void {
     this.labelsVisible = !this.labelsVisible;
     for (const v of this.views.values()) v.labelSprite.visible = this.labelsVisible;
