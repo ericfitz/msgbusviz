@@ -119,8 +119,42 @@ export class ColorEditor {
     window.addEventListener('keydown', this.windowKeydownHandler);
   }
 
-  private onChangeColorItemClick(_name: string): void {
-    // Filled in by Task 9.
+  private ensureInputEl(): HTMLInputElement {
+    if (this.inputEl) return this.inputEl;
+    const input = document.createElement('input');
+    input.type = 'color';
+    input.id = 'ce-color-input';
+    input.style.position = 'absolute';
+    input.style.left = '-9999px';
+    input.style.opacity = '0';
+    input.style.pointerEvents = 'none';
+    input.addEventListener('input', (e) => {
+      if (!this.selectedNodeName) return;
+      const v = (e.target as HTMLInputElement).value;
+      this.callbacks.onPreview(this.selectedNodeName, v);
+    });
+    input.addEventListener('change', (e) => {
+      if (!this.selectedNodeName) return;
+      const v = (e.target as HTMLInputElement).value;
+      const name = this.selectedNodeName;
+      this.selectedNodeName = null;
+      if (v !== this.originalHex) {
+        this.callbacks.onCommit(name, v);
+      }
+    });
+    const parent = this.domElement.parentElement ?? document.body;
+    parent.appendChild(input);
+    this.inputEl = input;
+    return input;
+  }
+
+  private onChangeColorItemClick(name: string): void {
+    this.selectedNodeName = name;
+    this.originalHex = this.callbacks.getCurrentHex(name);
+    const input = this.ensureInputEl();
+    input.value = this.originalHex;
+    this.dismissMenu();  // close menu BEFORE opening picker so it isn't visible during picker session
+    input.click();
   }
 
   private dismissMenu(): void {

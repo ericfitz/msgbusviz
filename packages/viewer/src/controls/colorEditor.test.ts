@@ -1,5 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'; // beforeEach/afterEach used in Task 8
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as THREE from 'three';
 import { ColorEditor } from './colorEditor.js';
 
@@ -112,5 +111,67 @@ describe('ColorEditor contextmenu', () => {
     const ev = fireContextMenu(domElement, 50, 50);
     expect(ev.defaultPrevented).toBe(false);
     expect(parent.querySelector('.ce-menu')).toBeNull();
+  });
+});
+
+describe('ColorEditor color picker plumbing', () => {
+  // Save and restore HTMLInputElement.prototype.click to avoid leaking the spy
+  // into unrelated tests (some other suites might rely on the native no-op behavior).
+  const origClick = HTMLInputElement.prototype.click;
+  let clickSpy: ReturnType<typeof vi.fn>;
+  beforeEach(() => {
+    clickSpy = vi.fn();
+    HTMLInputElement.prototype.click = clickSpy;
+  });
+  afterEach(() => {
+    HTMLInputElement.prototype.click = origClick;
+  });
+
+  it('clicking "Change color…" sets input value to getCurrentHex and clicks the input', () => {
+    const { domElement, parent, callbacks } = setupCeWithRealDom();
+    fireContextMenu(domElement, 50, 50);
+    const item = parent.querySelector('.ce-menu-item') as HTMLButtonElement;
+    expect(item).not.toBeNull();
+    item.click();
+
+    expect(callbacks.getCurrentHex).toHaveBeenCalledWith('A');
+    const input = parent.querySelector('input[type="color"]') as HTMLInputElement;
+    expect(input).not.toBeNull();
+    expect(input.value).toBe('#abcdef');
+    expect(clickSpy).toHaveBeenCalled();
+    // Menu should be closed after item click.
+    expect(parent.querySelector('.ce-menu')).toBeNull();
+  });
+
+  it('input event on the color input fires onPreview only', () => {
+    const { domElement, parent, callbacks } = setupCeWithRealDom();
+    fireContextMenu(domElement, 50, 50);
+    (parent.querySelector('.ce-menu-item') as HTMLButtonElement).click();
+    const input = parent.querySelector('input[type="color"]') as HTMLInputElement;
+    input.value = '#123456';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(callbacks.onPreview).toHaveBeenCalledWith('A', '#123456');
+    expect(callbacks.onCommit).not.toHaveBeenCalled();
+  });
+
+  it('change event with same hex as initial does NOT fire onCommit', () => {
+    const { domElement, parent, callbacks } = setupCeWithRealDom();
+    fireContextMenu(domElement, 50, 50);
+    (parent.querySelector('.ce-menu-item') as HTMLButtonElement).click();
+    const input = parent.querySelector('input[type="color"]') as HTMLInputElement;
+    input.value = '#abcdef';  // same as getCurrentHex returned
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(callbacks.onCommit).not.toHaveBeenCalled();
+  });
+
+  it('change event with a different hex fires onCommit once', () => {
+    const { domElement, parent, callbacks } = setupCeWithRealDom();
+    fireContextMenu(domElement, 50, 50);
+    (parent.querySelector('.ce-menu-item') as HTMLButtonElement).click();
+    const input = parent.querySelector('input[type="color"]') as HTMLInputElement;
+    input.value = '#00ff00';
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(callbacks.onCommit).toHaveBeenCalledTimes(1);
+    expect(callbacks.onCommit).toHaveBeenCalledWith('A', '#00ff00');
   });
 });
