@@ -13,8 +13,8 @@ const config: NormalizedConfig = {
   version: 1,
   layout: { mode: 'manual' },
   nodes: {
-    A: { model: 'cube', position: [0, 0, 0], scale: 1 },
-    B: { model: 'cube', position: [3, 0, 0], scale: 1 },
+    A: { model: 'cube', position: [0, 0, 0], scale: 1, color: '#888888' },
+    B: { model: 'cube', position: [3, 0, 0], scale: 1, color: '#888888' },
   },
   channels: {},
 } as unknown as NormalizedConfig;
@@ -33,5 +33,13 @@ describe('NodeManager', () => {
     const b = nm.getNodeGroup('B')!;
     expect(a.userData.nodeName).toBe('A');
     expect(b.userData.nodeName).toBe('B');
+  });
+
+  it('exposes the root group via getRoot()', async () => {
+    const positions = new Map<string, [number, number, number]>([['A', [0, 0, 0]]]);
+    await nm.sync(config, positions);
+    const root = nm.getRoot();
+    expect(root).toBeInstanceOf(THREE.Group);
+    expect(root.children.length).toBeGreaterThan(0);
   });
 });

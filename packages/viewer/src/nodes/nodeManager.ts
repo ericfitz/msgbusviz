@@ -18,6 +18,7 @@ export class NodeManager {
 
   attach(scene: THREE.Scene): void { scene.add(this.root); }
   detach(scene: THREE.Scene): void { scene.remove(this.root); }
+  getRoot(): THREE.Group { return this.root; }
   getNodeGroup(key: string): THREE.Group | undefined { return this.views.get(key)?.group; }
   toggleLabels(): void {
     this.labelsVisible = !this.labelsVisible;
