@@ -15,6 +15,7 @@ import { EdgeManager } from './edges/edgeManager.js';
 import { MessageAnimator } from './messages/messageAnimator.js';
 import { ViewerWs } from './ws/viewerWs.js';
 import { serializeRawConfig, type CameraSnapshot } from './serializeRawConfig.js';
+import { DragController } from './controls/dragNodes.js';
 
 export interface ViewerOptions {
   container: HTMLElement;
@@ -39,6 +40,7 @@ export class Viewer {
   private labelsVisible = true;
   private userHasOrbited = false;
   private readyPromise: Promise<void>;
+  private dragController: DragController | null = null;
   private dirty = false;
   private dirtyListeners: ((dirty: boolean) => void)[] = [];
   private saveErrorListeners: ((msg: string) => void)[] = [];
@@ -124,6 +126,8 @@ export class Viewer {
   dispose(): void {
     if (this.saveSuccessTimer) { clearTimeout(this.saveSuccessTimer); this.saveSuccessTimer = null; }
     this.loop?.stop();
+    this.dragController?.setEnabled(false);
+    this.dragController = null;
     this.ws?.close();
     this.orbit?.dispose();
     this.sceneRoot?.dispose();
@@ -211,6 +215,7 @@ export class Viewer {
       this.ws = new ViewerWs(this.opts.ws.url, {
         onHello: () => {},
         onConfigUpdated: async (cfg) => {
+          if (this.dragController?.isDragging()) return;
           this.current = await this.normalizeFromUnknown(cfg);
           this.graph = new Graph(this.current);
           this.positions = layoutGraph(this.graph, this.current.layout.mode, {
@@ -235,6 +240,31 @@ export class Viewer {
         },
       });
       this.ws.start();
+    }
+
+    if (this.opts.edit) {
+      this.dragController = new DragController(
+        this.sceneRoot.camera,
+        this.sceneRoot.renderer.domElement,
+        this.nodes.getRoot(),
+        {
+          onDragStart: (name) => {
+            this.orbit.controls.enabled = false;
+            this.nodes.setHighlighted(name, true);
+          },
+          onDragMove: (name, p) => {
+            this.positions.set(name, p);
+            this.nodes.applyPosition(name, p);
+            this.edges.sync(this.current, this.graph.arcs, this.positions);
+            this.markDirty();
+          },
+          onDragEnd: (name, _moved) => {
+            this.nodes.setHighlighted(name, false);
+            this.orbit.controls.enabled = true;
+          },
+        },
+      );
+      this.dragController.setEnabled(true);
     }
   }
 
