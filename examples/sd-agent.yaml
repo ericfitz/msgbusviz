@@ -1,5 +1,5 @@
 version: 1
-layout: { mode: force, spacing: 4 }
+layout: { mode: grid, spacing: 4 }
 defaults:
   channel:
     speed: 1500
