@@ -3,6 +3,8 @@ import type { NormalizedConfig, NormalizedNode, Vec3 } from '@msgbusviz/core';
 import { resolveNodeModel } from './modelResolver.js';
 import { createLabelSprite } from './label.js';
 
+const HIGHLIGHT_EMISSIVE_HEX = 0x444444;
+
 export interface NodeView {
   key: string;
   group: THREE.Group;
@@ -42,7 +44,7 @@ export class NodeManager {
         const mat = m.material as THREE.MeshLambertMaterial;
         if (!mat.emissive) return;
         saves.set(mat, mat.emissive.getHex());
-        mat.emissive.setHex(0x444444);
+        mat.emissive.setHex(HIGHLIGHT_EMISSIVE_HEX);
       });
       this.highlightSaves.set(key, saves);
     } else {

@@ -64,11 +64,14 @@ describe('NodeManager', () => {
     const meshes: THREE.Mesh[] = [];
     g.traverse((c) => { if ((c as THREE.Mesh).isMesh) meshes.push(c as THREE.Mesh); });
     expect(meshes.length).toBeGreaterThan(0);
+    (meshes[0]!.material as THREE.MeshLambertMaterial).emissive.setHex(0x112233);
     const before = (meshes[0]!.material as THREE.MeshLambertMaterial).emissive.getHex();
+    expect(before).toBe(0x112233);
 
     nm.setHighlighted('A', true);
     const during = (meshes[0]!.material as THREE.MeshLambertMaterial).emissive.getHex();
     expect(during).not.toBe(before);
+    expect(during).toBe(0x444444);
 
     nm.setHighlighted('A', false);
     const after = (meshes[0]!.material as THREE.MeshLambertMaterial).emissive.getHex();
