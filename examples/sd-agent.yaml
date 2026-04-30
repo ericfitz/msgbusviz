@@ -1,51 +1,237 @@
 version: 1
-layout: { mode: grid, spacing: 4 }
-defaults:
-  channel:
-    speed: 1500
+layout:
+  mode: manual
 nodes:
-  OpsAgent: { model: client }
-  Coordinator: { model: server }
-  FitnessAgent: { model: server }
-  SecurityAgent: { model: server }
-  SafetyAgent: { model: server }
-  HITLAgent: { model: server }
-  Escalator: { model: server }
-  SpeedDialDeployer: { model: server }
-  SpeedDialHost: { model: server }
-  Host: { model: server }
-  SourceRepo: { model: server }
-  AgentBus: { model: queue }
+  OpsAgent:
+    model: client
+    label: OpsAgent
+    scale: 1
+    color: '#888888'
+    position:
+      - -0.5
+      - 6.5
+      - -1
+  Coordinator:
+    model: server
+    label: Coordinator
+    scale: 1
+    color: '#888888'
+    position:
+      - -0.5
+      - 3.5
+      - 0.5
+  FitnessAgent:
+    model: server
+    label: FitnessAgent
+    scale: 1
+    color: '#888888'
+    position:
+      - -1.5
+      - -2
+      - 3
+  SecurityAgent:
+    model: server
+    label: SecurityAgent
+    scale: 1
+    color: '#888888'
+    position:
+      - 5.
+      - -2.5
+      - 2.5
+  SafetyAgent:
+    model: server
+    label: SafetyAgent
+    scale: 1
+    color: '#888888'
+    position:
+      - 3
+      - -3.5
+      - 1.5
+  HITLAgent:
+    model: server
+    label: HITLAgent
+    scale: 1
+    color: '#888888'
+    position:
+      - 0.5
+      - -2.5
+      - 4
+  Escalator:
+    model: server
+    label: Escalator
+    scale: 1
+    color: '#888888'
+    position:
+      - 5
+      - 2.5
+      - -1.5
+  SpeedDialDeployer:
+    model: server
+    label: SpeedDialDeployer
+    scale: 1
+    color: '#888888'
+    position:
+      - -10
+      - 2.5
+      - 0.5
+  SpeedDialHost:
+    model: server
+    label: SpeedDialHost
+    scale: 1
+    color: '#888888'
+    position:
+      - -6.5
+      - 6.8
+      - 0.0
+  Host:
+    model: server
+    label: Host
+    scale: 1
+    color: '#888888'
+    position:
+      - -10
+      - 6.5
+      - -0.5
+  SourceRepo:
+    model: server
+    label: SourceRepo
+    scale: 1
+    color: '#888888'
+    position:
+      - -5
+      - 2
+      - 3.5
+  AgentBus:
+    model: queue
+    label: AgentBus
+    scale: 1
+    color: '#888888'
+    position:
+      - 5
+      - 6.5
+      - -3.5
 channels:
   toolCallRequest:
-    {
-      publishers: [OpsAgent, SpeedDialHost],
-      subscribers: [OpsAgent, SpeedDialHost],
-      color: '#88aaff',
-    }
+    publishers:
+      - OpsAgent
+      - SpeedDialHost
+    subscribers:
+      - OpsAgent
+      - SpeedDialHost
+    speed: 1500
+    size: 1
+    color: '#88aaff'
+    messageModel: sphere
+    arcHeight: 1.5
   toolInvocation:
-    { publishers: [SpeedDialHost, Host], subscribers: [Host, SpeedDialHost], color: '#88aaff' }
+    publishers:
+      - SpeedDialHost
+      - Host
+    subscribers:
+      - Host
+      - SpeedDialHost
+    speed: 1500
+    size: 1
+    color: '#88aaff'
+    messageModel: sphere
+    arcHeight: 1.5
   approvalRequest:
-    { publishers: [OpsAgent, Coordinator], subscribers: [OpsAgent, Coordinator], color: '#88aaff' }
+    publishers:
+      - OpsAgent
+      - Coordinator
+    subscribers:
+      - OpsAgent
+      - Coordinator
+    speed: 1500
+    size: 1
+    color: '#88aaff'
+    messageModel: sphere
+    arcHeight: 1.5
   agentCommittee:
-    {
-      publishers: [Coordinator, FitnessAgent, SecurityAgent, SafetyAgent, HITLAgent],
-      subscribers: [Coordinator, FitnessAgent, SecurityAgent, SafetyAgent, HITLAgent],
-      color: '#bbbb44',
-    }
+    publishers:
+      - Coordinator
+    subscribers:
+      - FitnessAgent
+      - SecurityAgent
+      - SafetyAgent
+      - HITLAgent
+    speed: 1500
+    size: 1
+    color: '#bbbb44'
+    messageModel: sphere
+    arcHeight: 1.5
   escalationRequest:
-    {
-      publishers: [Coordinator, Escalator],
-      subscribers: [Coordinator, Escalator],
-      color: '#44aabb',
-    }
-  publishRequest: { publishers: [Coordinator], subscribers: [SpeedDialDeployer], color: '#aa44aa' }
-  commitSource: { publishers: [OpsAgent], subscribers: [SourceRepo], color: '#44aabb' }
+    publishers:
+      - Coordinator
+      - Escalator
+    subscribers:
+      - Coordinator
+      - Escalator
+    speed: 1500
+    size: 1
+    color: '#44aabb'
+    messageModel: sphere
+    arcHeight: 1.5
+  publishRequest:
+    publishers:
+      - Coordinator
+    subscribers:
+      - SpeedDialDeployer
+    speed: 1500
+    size: 1
+    color: '#aa44aa'
+    messageModel: sphere
+    arcHeight: 1.5
+  commitSource:
+    publishers:
+      - OpsAgent
+    subscribers:
+      - SourceRepo
+    speed: 1500
+    size: 1
+    color: '#44aabb'
+    messageModel: sphere
+    arcHeight: 1.5
   reviewSource:
-    {
-      publishers: [SpeedDialDeployer, FitnessAgent, SecurityAgent, SafetyAgent, HITLAgent],
-      subscribers: [SourceRepo],
-      color: '#44aabb',
-    }
-  publishTool: { publishers: [SpeedDialDeployer], subscribers: [Host], color: '#aa44aa' }
-  notifyAgentBus: { publishers: [SpeedDialHost], subscribers: [AgentBus], color: '#aa44aa' }
+    publishers:
+      - SpeedDialDeployer
+      - FitnessAgent
+      - SecurityAgent
+      - SafetyAgent
+      - HITLAgent
+    subscribers:
+      - SourceRepo
+    speed: 1500
+    size: 1
+    color: '#44aabb'
+    messageModel: sphere
+    arcHeight: 1.5
+  publishTool:
+    publishers:
+      - SpeedDialDeployer
+    subscribers:
+      - Host
+    speed: 1500
+    size: 1
+    color: '#aa44aa'
+    messageModel: sphere
+    arcHeight: 1.5
+  notifyAgentBus:
+    publishers:
+      - SpeedDialHost
+    subscribers:
+      - AgentBus
+    speed: 1500
+    size: 1
+    color: '#aa44aa'
+    messageModel: sphere
+    arcHeight: 1.5
+camera:
+  position:
+    - 0.06815980733263005
+    - 9.741219307873994
+    - 16.14653273644013
+  lookAt:
+    - 0.05305668147701528
+    - 1.334359638409663
+    - -0.6671798192048315
