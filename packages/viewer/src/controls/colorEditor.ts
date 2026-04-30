@@ -120,11 +120,14 @@ export class ColorEditor {
     window.addEventListener('keydown', this.windowKeydownHandler);
   }
 
-  private ensureInputEl(): HTMLInputElement {
-    if (this.inputEl) return this.inputEl;
+  private buildFreshInputEl(): HTMLInputElement {
+    // Remove any prior input first; reusing the same element across sessions
+    // caused the OS picker to flash-and-dismiss on the second invocation in
+    // some browsers (Chromium, observed). Building fresh per pick eliminates
+    // cross-session state.
+    if (this.inputEl?.parentElement) this.inputEl.parentElement.removeChild(this.inputEl);
     const input = document.createElement('input');
     input.type = 'color';
-    input.id = 'ce-color-input';
     input.style.position = 'absolute';
     input.style.left = '-9999px';
     input.style.opacity = '0';
@@ -157,7 +160,7 @@ export class ColorEditor {
   private onChangeColorItemClick(name: string): void {
     this.selectedNodeName = name;
     this.originalHex = this.callbacks.getCurrentHex(name);
-    const input = this.ensureInputEl();
+    const input = this.buildFreshInputEl();
     input.value = this.originalHex;
     this.dismissMenu();  // close menu BEFORE opening picker so it isn't visible during picker session
     input.click();

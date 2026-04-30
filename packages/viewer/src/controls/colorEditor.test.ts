@@ -175,6 +175,29 @@ describe('ColorEditor color picker plumbing', () => {
     expect(callbacks.onCommit).toHaveBeenCalledTimes(1);
     expect(callbacks.onCommit).toHaveBeenCalledWith('A', '#00ff00');
   });
+
+  it('a second invocation builds a fresh input element and clicks it', () => {
+    const { domElement, parent, callbacks } = setupCeWithRealDom();
+    // First session: open menu, click item, complete a commit.
+    fireContextMenu(domElement, 50, 50);
+    (parent.querySelector('.ce-menu-item') as HTMLButtonElement).click();
+    const firstInput = parent.querySelector('input[type="color"]') as HTMLInputElement;
+    firstInput.value = '#ff0000';
+    firstInput.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(callbacks.onCommit).toHaveBeenCalledTimes(1);
+
+    clickSpy.mockClear();
+
+    // Second session: open menu again, click item.
+    fireContextMenu(domElement, 50, 50);
+    (parent.querySelector('.ce-menu-item') as HTMLButtonElement).click();
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+    // Exactly one input element exists (prior was removed before the new one was built).
+    expect(parent.querySelectorAll('input[type="color"]').length).toBe(1);
+    const secondInput = parent.querySelector('input[type="color"]') as HTMLInputElement;
+    // It is a fresh element — not the same node as the first one.
+    expect(secondInput).not.toBe(firstInput);
+  });
 });
 
 describe('ColorEditor dismissal', () => {
