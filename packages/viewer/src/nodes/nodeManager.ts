@@ -13,6 +13,7 @@ export class NodeManager {
   private root = new THREE.Group();
   private views = new Map<string, NodeView>();
   private labelsVisible = true;
+  private highlightSaves = new Map<string, Map<THREE.Material, number>>();
 
   constructor(private baseUrl: string) {}
 
@@ -20,10 +21,39 @@ export class NodeManager {
   detach(scene: THREE.Scene): void { scene.remove(this.root); }
   getRoot(): THREE.Group { return this.root; }
   getNodeGroup(key: string): THREE.Group | undefined { return this.views.get(key)?.group; }
-  applyPosition(key: string, p: [number, number, number]): void {
+
+  /** @internal Drag-support primitive; intended for DragController. */
+  applyPosition(key: string, p: Vec3): void {
     const view = this.views.get(key);
     if (!view) return;
     view.group.position.set(p[0], p[1], p[2]);
+  }
+
+  /** @internal Drag-support primitive; intended for DragController. */
+  setHighlighted(key: string, on: boolean): void {
+    const view = this.views.get(key);
+    if (!view) return;
+
+    if (on) {
+      const saves = new Map<THREE.Material, number>();
+      view.group.traverse((c) => {
+        const m = c as THREE.Mesh;
+        if (!(m as { isMesh?: boolean }).isMesh || !m.material) return;
+        const mat = m.material as THREE.MeshLambertMaterial;
+        if (!mat.emissive) return;
+        saves.set(mat, mat.emissive.getHex());
+        mat.emissive.setHex(0x444444);
+      });
+      this.highlightSaves.set(key, saves);
+    } else {
+      const saves = this.highlightSaves.get(key);
+      if (!saves) return;
+      for (const [mat, hex] of saves) {
+        const m = mat as THREE.MeshLambertMaterial;
+        if (m.emissive) m.emissive.setHex(hex);
+      }
+      this.highlightSaves.delete(key);
+    }
   }
   toggleLabels(): void {
     this.labelsVisible = !this.labelsVisible;

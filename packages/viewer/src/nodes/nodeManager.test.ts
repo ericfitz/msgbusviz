@@ -56,4 +56,22 @@ describe('NodeManager', () => {
     await nm.sync(config, positions);
     expect(() => nm.applyPosition('Ghost', [1, 2, 3])).not.toThrow();
   });
+
+  it('setHighlighted toggles emissive on materials and restores on off', async () => {
+    const positions = new Map<string, [number, number, number]>([['A', [0, 0, 0]]]);
+    await nm.sync(config, positions);
+    const g = nm.getNodeGroup('A')!;
+    const meshes: THREE.Mesh[] = [];
+    g.traverse((c) => { if ((c as THREE.Mesh).isMesh) meshes.push(c as THREE.Mesh); });
+    expect(meshes.length).toBeGreaterThan(0);
+    const before = (meshes[0]!.material as THREE.MeshLambertMaterial).emissive.getHex();
+
+    nm.setHighlighted('A', true);
+    const during = (meshes[0]!.material as THREE.MeshLambertMaterial).emissive.getHex();
+    expect(during).not.toBe(before);
+
+    nm.setHighlighted('A', false);
+    const after = (meshes[0]!.material as THREE.MeshLambertMaterial).emissive.getHex();
+    expect(after).toBe(before);
+  });
 });
