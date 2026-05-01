@@ -11,9 +11,24 @@ function makeFakeEl(): {
   const added: Array<{ type: string; fn: EventListenerOrEventListenerObject }> = [];
   const removed: Array<{ type: string; fn: EventListenerOrEventListenerObject }> = [];
   const el = {
-    addEventListener: (type: string, fn: EventListenerOrEventListenerObject) => { added.push({ type, fn }); },
-    removeEventListener: (type: string, fn: EventListenerOrEventListenerObject) => { removed.push({ type, fn }); },
-    getBoundingClientRect: () => ({ left: 0, top: 0, width: 100, height: 100, right: 100, bottom: 100, x: 0, y: 0, toJSON: () => ({}) } as DOMRect),
+    addEventListener: (type: string, fn: EventListenerOrEventListenerObject) => {
+      added.push({ type, fn });
+    },
+    removeEventListener: (type: string, fn: EventListenerOrEventListenerObject) => {
+      removed.push({ type, fn });
+    },
+    getBoundingClientRect: () =>
+      ({
+        left: 0,
+        top: 0,
+        width: 100,
+        height: 100,
+        right: 100,
+        bottom: 100,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+      }) as DOMRect,
     parentElement: document.createElement('div'),
     style: { cursor: '' } as CSSStyleDeclaration,
   } as unknown as HTMLElement;
@@ -56,7 +71,18 @@ function setupCeWithRealDom() {
   document.body.appendChild(parent);
   const domElement = document.createElement('canvas');
   Object.defineProperty(domElement, 'getBoundingClientRect', {
-    value: () => ({ left: 0, top: 0, right: 100, bottom: 100, width: 100, height: 100, x: 0, y: 0, toJSON: () => ({}) } as DOMRect),
+    value: () =>
+      ({
+        left: 0,
+        top: 0,
+        right: 100,
+        bottom: 100,
+        width: 100,
+        height: 100,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+      }) as DOMRect,
   });
   parent.appendChild(domElement);
   const cam = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
@@ -67,7 +93,10 @@ function setupCeWithRealDom() {
   // A node group at origin with a hit mesh and userData.nodeName.
   const nodeGroup = new THREE.Group();
   nodeGroup.userData.nodeName = 'A';
-  const mesh = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), new THREE.MeshLambertMaterial({ color: '#abcdef' }));
+  const mesh = new THREE.Mesh(
+    new THREE.BoxGeometry(2, 2, 2),
+    new THREE.MeshLambertMaterial({ color: '#abcdef' }),
+  );
   nodeGroup.add(mesh);
   root.add(nodeGroup);
   root.updateMatrixWorld(true);
@@ -121,8 +150,8 @@ describe('ColorEditor color picker plumbing', () => {
   const origClick = HTMLInputElement.prototype.click;
   let clickSpy: Mock<() => void>;
   beforeEach(() => {
-    clickSpy = vi.fn<() => void>();
-    HTMLInputElement.prototype.click = clickSpy;
+    clickSpy = vi.fn();
+    HTMLInputElement.prototype.click = clickSpy as unknown as () => void;
   });
   afterEach(() => {
     HTMLInputElement.prototype.click = origClick;
@@ -160,7 +189,7 @@ describe('ColorEditor color picker plumbing', () => {
     fireContextMenu(domElement, 50, 50);
     (parent.querySelector('.ce-menu-item') as HTMLButtonElement).click();
     const input = parent.querySelector('input[type="color"]') as HTMLInputElement;
-    input.value = '#abcdef';  // same as getCurrentHex returned
+    input.value = '#abcdef'; // same as getCurrentHex returned
     input.dispatchEvent(new Event('change', { bubbles: true }));
     expect(callbacks.onCommit).not.toHaveBeenCalled();
   });
