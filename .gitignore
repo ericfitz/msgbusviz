@@ -10,3 +10,5 @@ test-results/
 coverage/
 .DS_Store
 tests/e2e/**/*.js
+__pycache__
+__pycache__/**

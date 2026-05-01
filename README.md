@@ -157,6 +157,52 @@ node examples/demo-traffic.mjs 49922 --min-delay 100 --max-delay 100 --burst-pro
 node examples/demo-traffic.mjs 49922 --min-delay 20 --max-delay 50 --burst-prob 0.5 --burst-max 20
 ```
 
+## Python client
+
+The `msgbusviz` Python package (this repo, `msgbusviz/`) is a thin synchronous client for the same WS protocol. Use it to drive the visualization from Python — e.g. forwarding traffic observed on real infrastructure.
+
+### Install
+
+From this repo:
+
+```bash
+uv sync                  # core client
+uv sync --extra redis    # also installs redis-py for examples/redis-bridge.py
+```
+
+Or from another project: `pip install msgbusviz` (once published) / `pip install -e path/to/msgbusviz`.
+
+### Usage
+
+```python
+from msgbusviz import Client
+
+with Client(port=49922) as viz:
+    # Config from the served YAML is available after connect:
+    for name, ch in viz.channels.items():
+        print(name, ch.publishers, "->", ch.subscribers, f"({ch.speed}ms)")
+
+    # Fire a message. `from_` is optional if the channel has exactly one publisher.
+    viz.send_message("webRequest", from_="Client", label="req-42")
+
+    # Live-tweak channel appearance:
+    viz.update_channel("webRequest", color="#ff8800", speed=800)
+```
+
+`Client(...)` accepts either `url="ws://host:port/ws"` or `host=` / `port=`. Other options: `reconnect` (default `True`, with exponential backoff), `max_queue`, `connect_timeout`, and `on_error` / `on_config` callbacks. Server-side validation errors (unknown channel, invalid publisher, …) are delivered via `on_error`.
+
+### Bridging from Redis pub/sub
+
+`examples/redis-bridge.py` subscribes to every channel name in the served YAML on a Redis instance and forwards each Redis message as a `sendMessage`:
+
+```bash
+npx msgbusviz serve examples/ops-agent.yaml --port 49922          # terminal 1
+uv run examples/redis-bridge.py --viz-port 49922                  # terminal 2
+redis-cli PUBLISH webRequest '{"from":"Client","label":"req-42"}' # terminal 3
+```
+
+If the Redis payload is a JSON object, the bridge lifts `from` / `to` / `label` / `color` from it; otherwise the raw payload (truncated) becomes the label. Use it as-is or as a template for your own monitor.
+
 ## Concepts
 
 - **Node**: a component in your distributed system. Rendered as a primitive shape or user-supplied glTF.
@@ -167,14 +213,14 @@ See [docs/superpowers/specs/2026-04-29-msgbusviz-design.md](docs/superpowers/spe
 
 ## Packages
 
-| Package                           | What it is                                    |
-| --------------------------------- | --------------------------------------------- |
-| `@msgbusviz/protocol`             | WS protocol JSON Schema + TS types            |
-| `@msgbusviz/core`                 | Config schema, graph model, layout algorithms |
-| `@msgbusviz/viewer`               | Browser library (Three.js scene + animation)  |
-| `@msgbusviz/server`               | Node sidecar with `npx msgbusviz` CLI         |
-| `@msgbusviz/client`               | TypeScript client SDK                         |
-| `msgbusviz` (PyPI, separate repo) | Python client SDK                             |
+| Package               | What it is                                    |
+| --------------------- | --------------------------------------------- |
+| `@msgbusviz/protocol` | WS protocol JSON Schema + TS types            |
+| `@msgbusviz/core`     | Config schema, graph model, layout algorithms |
+| `@msgbusviz/viewer`   | Browser library (Three.js scene + animation)  |
+| `@msgbusviz/server`   | Node sidecar with `npx msgbusviz` CLI         |
+| `@msgbusviz/client`   | TypeScript client SDK                         |
+| `msgbusviz` (PyPI)    | Python client SDK (`msgbusviz/` in this repo) |
 
 ## Develop
 
