@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import * as THREE from 'three';
 import type { HexColor } from '@msgbusviz/core';
 import { ColorEditor } from './colorEditor.js';
@@ -119,9 +119,9 @@ describe('ColorEditor color picker plumbing', () => {
   // Save and restore HTMLInputElement.prototype.click to avoid leaking the spy
   // into unrelated tests (some other suites might rely on the native no-op behavior).
   const origClick = HTMLInputElement.prototype.click;
-  let clickSpy: ReturnType<typeof vi.fn>;
+  let clickSpy: Mock<() => void>;
   beforeEach(() => {
-    clickSpy = vi.fn();
+    clickSpy = vi.fn<() => void>();
     HTMLInputElement.prototype.click = clickSpy;
   });
   afterEach(() => {

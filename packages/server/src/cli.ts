@@ -96,7 +96,8 @@ export async function runCli(argv: string[]): Promise<number> {
   if (parsed.open) {
     try {
       const open = (await import('open')).default;
-      await open(running.url);
+      const url = parsed.edit ? `${running.url}/?edit=1` : running.url;
+      await open(url);
     } catch (err) {
       logger.warn(`failed to open browser: ${(err as Error).message}`);
     }

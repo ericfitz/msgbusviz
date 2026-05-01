@@ -1,0 +1,281 @@
+version: 1
+layout:
+  mode: manual
+nodes:
+  OpsAgent:
+    model: client
+    label: OpsAgent
+    scale: 1
+    color: '#fa7900'
+    position:
+      - 1.24051176350285
+      - 6.644457002984228
+      - -0.7584821242004381
+  Orchestrator:
+    model: server
+    label: Orchestrator
+    scale: 1
+    color: '#ff0000'
+    position:
+      - 0
+      - 4
+      - 1.5
+  FitnessAgent:
+    model: server
+    label: FitnessAgent
+    scale: 1
+    color: '#ffff00'
+    position:
+      - -1.7401338989903818
+      - -1.3097391481354848
+      - 4.1985810224544
+  SecurityAgent:
+    model: server
+    label: SecurityAgent
+    scale: 1
+    color: '#ffff00'
+    position:
+      - 5.106313951299956
+      - -1.2562886912484998
+      - 4.232625896715421
+  SafetyAgent:
+    model: server
+    label: SafetyAgent
+    scale: 1
+    color: '#ffff00'
+    position:
+      - 3
+      - -1.5
+      - 4
+  HITLAgent:
+    model: server
+    label: HITLAgent
+    scale: 1
+    color: '#ffff00'
+    position:
+      - 0.5
+      - -1.5
+      - 4
+  Escalator:
+    model: server
+    label: Escalator
+    scale: 1
+    color: '#ff8ff0'
+    position:
+      - 5
+      - 4
+      - 1.5
+  SpeedDialDeployer:
+    model: server
+    label: SpeedDialDeployer
+    scale: 1
+    color: '#995900'
+    position:
+      - -7.708124727689274
+      - 4.478217676832968
+      - 1.4789754032818831
+  SpeedDialHost:
+    model: server
+    label: SpeedDialHost
+    scale: 1
+    color: '#b602f7'
+    position:
+      - -6
+      - 6.5
+      - -1
+  Host:
+    model: server
+    label: Host
+    scale: 1
+    color: '#00a0ff'
+    position:
+      - -10
+      - 6.5
+      - -1
+  SourceRepo:
+    model: server
+    label: SourceRepo
+    scale: 1
+    color: '#00ff00'
+    position:
+      - -4.556576923187474
+      - 2.4104910770830243
+      - 2.5680842460716065
+  AgentBus:
+    model: queue
+    label: AgentBus
+    scale: 1
+    color: '#00e1ff'
+    position:
+      - -6.148573962124997
+      - 9.607394284389784
+      - -1.365100423347922
+channels:
+  toolCallRequest:
+    publishers:
+      - OpsAgent
+      - SpeedDialHost
+    subscribers:
+      - OpsAgent
+      - SpeedDialHost
+    speed: 1000
+    size: 1
+    color: '#88aaff'
+    messageModel: sphere
+    arcHeight: 1.5
+  toolInvocation:
+    publishers:
+      - SpeedDialHost
+      - Host
+    subscribers:
+      - Host
+      - SpeedDialHost
+    speed: 1000
+    size: 1
+    color: '#88aaff'
+    messageModel: sphere
+    arcHeight: 1.5
+  toolApprovalRequest:
+    publishers:
+      - OpsAgent
+      - Orchestrator
+    subscribers:
+      - OpsAgent
+      - Orchestrator
+    speed: 1000
+    size: 1
+    color: '#88aaff'
+    messageModel: sphere
+    arcHeight: 1.5
+  fitnessApprovalRequest:
+    publishers:
+      - Orchestrator
+      - FitnessAgent
+    subscribers:
+      - FitnessAgent
+      - Orchestrator
+    speed: 1000
+    size: 1
+    color: '#bbbb44'
+    messageModel: sphere
+    arcHeight: 1.5
+  securityApprovalRequest:
+    publishers:
+      - Orchestrator
+      - SecurityAgent
+    subscribers:
+      - SecurityAgent
+      - Orchestrator
+    speed: 1000
+    size: 1
+    color: '#bbbb44'
+    messageModel: sphere
+    arcHeight: 1.5
+  safetyApprovalRequest:
+    publishers:
+      - Orchestrator
+      - SafetyAgent
+    subscribers:
+      - SafetyAgent
+      - Orchestrator
+    speed: 1000
+    size: 1
+    color: '#bbbb44'
+    messageModel: sphere
+    arcHeight: 1.5
+  HITLApprovalRequest:
+    publishers:
+      - Orchestrator
+      - HITLAgent
+    subscribers:
+      - HITLAgent
+      - Orchestrator
+    speed: 1000
+    size: 1
+    color: '#bbbb44'
+    messageModel: sphere
+    arcHeight: 1.5
+  escalationRequest:
+    publishers:
+      - Orchestrator
+      - Escalator
+    subscribers:
+      - Escalator
+      - Orchestrator
+    speed: 1000
+    size: 1
+    color: '#44aabb'
+    messageModel: sphere
+    arcHeight: 1.5
+  publishRequest:
+    publishers:
+      - Orchestrator
+    subscribers:
+      - SpeedDialDeployer
+    speed: 1000
+    size: 1
+    color: '#aa44aa'
+    messageModel: sphere
+    arcHeight: 1.5
+  commitSource:
+    publishers:
+      - OpsAgent
+    subscribers:
+      - SourceRepo
+    speed: 1000
+    size: 1
+    color: '#44aabb'
+    messageModel: sphere
+    arcHeight: 1.5
+  reviewSource:
+    publishers:
+      - SourceRepo
+    subscribers:
+      - FitnessAgent
+      - SecurityAgent
+      - SafetyAgent
+      - HITLAgent
+    speed: 1000
+    size: 1
+    color: '#44aabb'
+    messageModel: sphere
+    arcHeight: 1.5
+  buildSource:
+    publishers:
+      - SourceRepo
+    subscribers:
+      - SpeedDialDeployer
+    speed: 1000
+    size: 1
+    color: '#44aabb'
+    messageModel: sphere
+    arcHeight: 1.5
+  publishTool:
+    publishers:
+      - SpeedDialDeployer
+    subscribers:
+      - Host
+    speed: 1000
+    size: 1
+    color: '#aa44aa'
+    messageModel: sphere
+    arcHeight: 1.5
+  notifyAgentBus:
+    publishers:
+      - SpeedDialHost
+    subscribers:
+      - AgentBus
+    speed: 1000
+    size: 1
+    color: '#aa44aa'
+    messageModel: sphere
+    arcHeight: 1.5
+camera:
+  position:
+    - -2.4822987183380976
+    - 11.838579433105544
+    - 16.88720430784125
+  lookAt:
+    - -2.5
+    - 4.053697142194892
+    - 1.3174497883260385
