@@ -210,8 +210,10 @@ channels:
   publishRequest:
     publishers:
       - Orchestrator
+      - SpeedDialDeployer
     subscribers:
       - SpeedDialDeployer
+      - Orchestrator
     speed: 1000
     size: 1
     color: '#aa44aa'
@@ -255,6 +257,36 @@ channels:
       - SpeedDialDeployer
     subscribers:
       - Host
+    speed: 1000
+    size: 1
+    color: '#aa44aa'
+    messageModel: sphere
+    arcHeight: 1.5
+  registerToolRequest:
+    publishers:
+      - SpeedDialDeployer
+    subscribers:
+      - SpeedDialHost
+    speed: 1000
+    size: 1
+    color: '#aa44aa'
+    messageModel: sphere
+    arcHeight: 1.5
+  registerToolResult:
+    publishers:
+      - SpeedDialHost
+    subscribers:
+      - SpeedDialDeployer
+    speed: 1000
+    size: 1
+    color: '#aa44aa'
+    messageModel: sphere
+    arcHeight: 1.5
+  toolAvailableNotice:
+    publishers:
+      - SpeedDialDeployer
+    subscribers:
+      - OpsAgent
     speed: 1000
     size: 1
     color: '#aa44aa'
