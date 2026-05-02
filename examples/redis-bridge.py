@@ -26,17 +26,23 @@ import logging
 import signal
 import sys
 
-import redis
+import redis  # ty:ignore[unresolved-import]
 
 from msgbusviz import Client
+
+logger = logging.getLogger(__name__)
 
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--viz-port", type=int, required=True, help="port of the msgbusviz sidecar")
+    p.add_argument(
+        "--viz-port", type=int, required=True, help="port of the msgbusviz sidecar"
+    )
     p.add_argument("--viz-host", default="localhost")
     p.add_argument("--redis-url", default="redis://localhost:6379/0")
-    p.add_argument("--label-max", type=int, default=32, help="truncate labels to this many chars")
+    p.add_argument(
+        "--label-max", type=int, default=32, help="truncate labels to this many chars"
+    )
     p.add_argument("-v", "--verbose", action="store_true")
     return p.parse_args()
 
@@ -71,18 +77,24 @@ def main() -> int:
         format="%(asctime)s %(levelname)s %(message)s",
     )
 
-    viz = Client(host=args.viz_host, port=args.viz_port, on_error=lambda m: logging.warning("viz: %s", m))
+    viz = Client(
+        host=args.viz_host,
+        port=args.viz_port,
+        on_error=lambda m: logger.warning("viz: %s", m),
+    )
     viz.connect()
     channels = sorted(viz.channels)
     if not channels:
-        logging.error("msgbusviz config has no channels; nothing to bridge")
+        logger.error("msgbusviz config has no channels; nothing to bridge")
         return 1
-    logging.info("msgbusviz @ %s — channels: %s", viz.url, ", ".join(channels))
+    logger.info("msgbusviz @ %s — channels: %s", viz.url, ", ".join(channels))
 
     r = redis.Redis.from_url(args.redis_url)
     pubsub = r.pubsub(ignore_subscribe_messages=True)
     pubsub.subscribe(*channels)
-    logging.info("subscribed to %d Redis channel(s) on %s", len(channels), args.redis_url)
+    logger.info(
+        "subscribed to %d Redis channel(s) on %s", len(channels), args.redis_url
+    )
 
     stop = False
 
@@ -108,7 +120,7 @@ def main() -> int:
                 color=fields.get("color"),
             )
             if args.verbose:
-                logging.debug("→ %s %s", channel, fields)
+                logger.debug("→ %s %s", channel, fields)
     finally:
         pubsub.close()
         r.close()

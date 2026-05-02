@@ -1,14 +1,17 @@
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 import threading
-import time
 from collections import deque
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any
 
-import websocket
+import websocket  # type: ignore # ty:ignore[unresolved-import]
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 PROTOCOL_VERSION = 1
 
@@ -17,6 +20,8 @@ log = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class Channel:
+    """A channel definition from the served msgbusviz config."""
+
     key: str
     publishers: tuple[str, ...]
     subscribers: tuple[str, ...]
@@ -29,6 +34,8 @@ class Channel:
 
 @dataclass(frozen=True)
 class Node:
+    """A node definition from the served msgbusviz config."""
+
     key: str
     model: str
     label: str
@@ -39,12 +46,15 @@ class Node:
 
 @dataclass(frozen=True)
 class Config:
+    """The msgbusviz config as parsed from a ``hello`` or ``configUpdated`` frame."""
+
     raw: dict[str, Any]
     nodes: dict[str, Node] = field(default_factory=dict)
     channels: dict[str, Channel] = field(default_factory=dict)
 
     @classmethod
     def from_raw(cls, raw: dict[str, Any]) -> Config:
+        """Build a ``Config`` from the raw ``config`` object sent by the server."""
         nodes: dict[str, Node] = {}
         for key, n in (raw.get("nodes") or {}).items():
             pos = n.get("position")
@@ -72,7 +82,7 @@ class Config:
 
 
 class ClientError(Exception):
-    pass
+    """Raised for client-side protocol or connection errors."""
 
 
 class Client:
@@ -125,20 +135,28 @@ class Client:
 
     @property
     def url(self) -> str:
+        """The WebSocket URL this client connects to."""
         return self._url
 
     @property
     def config(self) -> Config:
+        """The most recent ``Config`` received from the server.
+
+        Raises:
+            ClientError: if no ``hello`` frame has been received yet.
+        """
         if self._config is None:
             raise ClientError("not connected (no config received yet)")
         return self._config
 
     @property
     def channels(self) -> dict[str, Channel]:
+        """Channels declared in the served config, keyed by channel name."""
         return self.config.channels
 
     @property
     def nodes(self) -> dict[str, Node]:
+        """Nodes declared in the served config, keyed by node name."""
         return self.config.nodes
 
     def connect(self) -> None:
@@ -148,21 +166,22 @@ class Client:
         self._closed.clear()
         self._hello.clear()
         self._open_socket()
-        self._reader = threading.Thread(target=self._read_loop, name="msgbusviz-reader", daemon=True)
+        self._reader = threading.Thread(
+            target=self._read_loop, name="msgbusviz-reader", daemon=True
+        )
         self._reader.start()
         if not self._hello.wait(self._connect_timeout):
             self.close()
             raise ClientError(f"timed out waiting for hello from {self._url}")
 
     def close(self) -> None:
+        """Close the WebSocket and stop the reader thread."""
         self._closed.set()
         with self._lock:
             ws, self._ws = self._ws, None
         if ws is not None:
-            try:
+            with contextlib.suppress(websocket.WebSocketException, OSError):
                 ws.close()
-            except Exception:
-                pass
         if self._reader and self._reader is not threading.current_thread():
             self._reader.join(timeout=2.0)
         self._reader = None
@@ -197,6 +216,7 @@ class Client:
         size: float | None = None,
         message_model: str | None = None,
     ) -> None:
+        """Patch one or more visual properties of ``channel`` on the running viewer."""
         patch: dict[str, Any] = {}
         if color is not None:
             patch["color"] = color
@@ -234,7 +254,7 @@ class Client:
                 return
             try:
                 ws.send(frame)
-            except Exception as err:
+            except (websocket.WebSocketException, OSError) as err:
                 self._report_error(f"send failed: {err}")
                 self._queue.append(frame)
                 self._ws = None
@@ -247,7 +267,8 @@ class Client:
             while self._queue:
                 try:
                     ws.send(self._queue[0])
-                except Exception:
+                except (websocket.WebSocketException, OSError) as err:
+                    self._report_error(f"flush failed: {err}")
                     self._ws = None
                     return
                 self._queue.popleft()
@@ -263,7 +284,7 @@ class Client:
                     self._open_socket()
                     backoff = self._initial_backoff
                     continue
-                except Exception as err:
+                except (websocket.WebSocketException, OSError) as err:
                     self._report_error(f"reconnect failed: {err}")
                     if self._closed.wait(backoff):
                         return
@@ -271,7 +292,7 @@ class Client:
                     continue
             try:
                 raw = ws.recv()
-            except Exception as err:
+            except (websocket.WebSocketException, OSError) as err:
                 if self._closed.is_set():
                     return
                 self._report_error(f"socket error: {err}")
@@ -294,7 +315,9 @@ class Client:
         if t == "hello":
             pv = data.get("protocolVersion")
             if pv != PROTOCOL_VERSION:
-                self._report_error(f"protocol version mismatch: server={pv}, client={PROTOCOL_VERSION}")
+                self._report_error(
+                    f"protocol version mismatch: server={pv}, client={PROTOCOL_VERSION}"
+                )
             self._set_config(data.get("config") or {})
             self._flush_queue()
             self._hello.set()

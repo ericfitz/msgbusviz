@@ -16,11 +16,11 @@ from .client import (
 __version__ = "0.1.0"
 
 __all__ = [
+    "PROTOCOL_VERSION",
+    "Channel",
     "Client",
     "ClientError",
     "Config",
-    "Channel",
     "Node",
-    "PROTOCOL_VERSION",
     "__version__",
 ]
