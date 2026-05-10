@@ -16,11 +16,12 @@
     "build": "npm run build --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "test:e2e": "playwright test --config=tests/e2e/playwright.config.ts",
-    "lint": "eslint . --ext .ts,.tsx",
+    "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,tsx,json,md,yaml,yml}\"",
     "typecheck": "tsc -b"
   },
   "devDependencies": {
+    "@eslint/js": "^8.57.1",
     "@playwright/test": "^1.43.0",
     "@rolldown/binding-darwin-arm64": "^1.0.0-rc.18",
     "@rollup/rollup-darwin-arm64": "^4.60.2",
