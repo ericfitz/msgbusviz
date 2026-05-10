@@ -185,7 +185,6 @@ export class Viewer {
         this.orbit.captureInitial();
         const cam = this.sceneRoot.camera;
         const tgt = this.orbit.controls.target;
-        // eslint-disable-next-line no-console
         console.info(
           `[msgbusviz ${buildId}] refit(${label}): aspect=${cam.aspect.toFixed(2)} ` +
           `pos=[${cam.position.x.toFixed(1)}, ${cam.position.y.toFixed(1)}, ${cam.position.z.toFixed(1)}] ` +
@@ -199,7 +198,6 @@ export class Viewer {
         if (!this.userHasOrbited) {
           this.fitToGraph();
           this.orbit.captureInitial();
-          // eslint-disable-next-line no-console
           console.info(`[msgbusviz ${buildId}] refit(resize)`);
         }
       });
