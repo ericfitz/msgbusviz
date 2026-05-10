@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import chokidar from 'chokidar';
+import { watch } from 'chokidar';
 import { loadConfigFromString, normalize, type NormalizedConfig } from '@msgbusviz/core';
 import type { HubLogger } from './hub.js';
 
@@ -17,7 +17,7 @@ export function watchConfig(
   events: WatcherEvents,
   logger: HubLogger,
 ): ConfigWatcher {
-  const watcher = chokidar.watch(filePath, { ignoreInitial: true });
+  const watcher = watch(filePath, { ignoreInitial: true });
   watcher.on('change', () => reload(filePath, events, logger));
   return {
     async close() { await watcher.close(); },
