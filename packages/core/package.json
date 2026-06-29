@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@msgbusviz/protocol": "0.1.0",
-    "js-yaml": "^4.1.0",
+    "js-yaml": "^4.3.0",
     "zod": "^4.0.0"
   },
   "devDependencies": {
