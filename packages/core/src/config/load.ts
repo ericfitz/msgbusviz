@@ -1,4 +1,4 @@
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 import { RawConfigSchema, type RawConfigOutput } from './schema.js';
 import { ConfigError } from './errors.js';
 
