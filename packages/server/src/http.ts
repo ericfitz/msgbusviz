@@ -1,7 +1,7 @@
 import type http from 'node:http';
 import path from 'node:path';
 import fs from 'node:fs';
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 import type { NormalizedConfig } from '@msgbusviz/core';
 
 export interface HttpDeps {
