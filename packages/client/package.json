@@ -24,7 +24,7 @@
   "devDependencies": {
     "@msgbusviz/server": "0.1.0",
     "@types/ws": "^8.5.10",
-    "vitest": "^4.1.11",
+    "vitest": "^5.0.3",
     "ws": "^8.21.3"
   },
   "peerDependencies": {
