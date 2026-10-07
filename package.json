@@ -29,6 +29,7 @@
     "@typescript-eslint/eslint-plugin": "^8.68.0",
     "@typescript-eslint/parser": "^8.59.2",
     "eslint": "^10.9.1",
+    "lightningcss-darwin-arm64": "^1.33.0",
     "prettier": "^3.2.0",
     "typescript": "^6.0.3",
     "vitest": "^4.1.11",
