@@ -1,6 +1,6 @@
 # msgbusviz
 
-Done gate: `npm ci && npm run build && npm run typecheck && npm run lint && npm test` — build, typecheck (`tsc -b`), lint, and all Node unit tests (286 as of 2026-10-06) must pass.
+Done gate: `npm ci && npm run build && npm run typecheck && npm run lint && npm test` — build, typecheck (`tsc -b`), lint, and all Node unit tests (143 as of 2026-10-06) must pass.
 
 ## Platform binaries
 
