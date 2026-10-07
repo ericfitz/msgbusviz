@@ -12,3 +12,5 @@ coverage/
 tests/e2e/**/*.js
 __pycache__
 __pycache__/**
+.local/
+.local/
