@@ -24,11 +24,11 @@
   "devDependencies": {
     "@msgbusviz/server": "0.1.0",
     "@types/ws": "^8.5.10",
-    "vitest": "^5.0.5",
-    "ws": "^8.21.3"
+    "vitest": "^5.1.0",
+    "ws": "^8.22.1"
   },
   "peerDependencies": {
-    "ws": "^8.21.3"
+    "ws": "^8.22.1"
   },
   "peerDependenciesMeta": {
     "ws": {
